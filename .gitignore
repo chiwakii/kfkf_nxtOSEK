@@ -5,3 +5,5 @@
 ./vm/*.bin
 ./vm/*.elf
 ./vm/*.map
+./vm/kernel_cfg.c
+./vm/kernel_id.h
