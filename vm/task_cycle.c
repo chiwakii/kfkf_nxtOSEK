@@ -1,14 +1,15 @@
+#include <math.h>
 #include "kernel.h"
 #include "kernel_id.h"
 #include "ecrobot_interface.h"
 #include "statics/balancer.h"
 #include "statics/port_interface.h"
-#include "statics/bluetooth_interface.h"
 #include "StateMachine.h"
+#include "statics/kfkf_bluetooth.h"
 #include "Logger.h"
 #include "SensorManager.h"
 #include "Controller.h"
-#include <math.h>
+
 
 DeclareCounter(SysTimerCnt);
 DeclareTask(TaskInit);
@@ -18,7 +19,7 @@ DeclareTask(TaskSensor);				/* Task to keep sensoring */
 DeclareTask(TaskLogger);				/*Task to send log*/
 
 ////////////////////////////////////////
-///prototype declaration
+///prototype declarationf
 /////////////////////////////////
 void event_manager();
 void gyro_calibration();
@@ -39,9 +40,8 @@ S8 calc_variance(U16 *buf,int _len);
 //#define DEBUG
 
 
-
 //we should make these valiables dynamic valiables
-int ptr;
+
 int i;
 int rest;
 int i_value = 0;
@@ -146,7 +146,7 @@ TASK(TaskBalance)
 		balance_init();
 
 
-        receive_BT(matrix,states,statemachine);   //receiveing BT
+        receive_BT(statemachine);   //receiveing BT
         
         
   
