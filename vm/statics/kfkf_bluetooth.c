@@ -1,7 +1,8 @@
-void receive_BT(S16 *matrix,S16 *states,StateMachine_t statemachine){
-#ifdef BLUETOOTH
-    S16 num_of_events,num_of_states;
-    int packet_no=1;
+#include "../StateMachine.h"
+#include "kfkf_bluetooth.h"
+void receive_BT(short *matrix,short *states, StateMachine_t statemachine){
+    short num_of_events,num_of_states;
+    int packet_no=1,ptr;
     ///////bluetooth
     //wait for　bluetooth
     ////////////////////////
@@ -143,11 +144,13 @@ void receive_BT(S16 *matrix,S16 *states,StateMachine_t statemachine){
 	
 #endif
     
-#endif
+
+	
     statemachine.num_of_events = num_of_events;
     statemachine.num_of_states = num_of_states;
     statemachine.current_state = 0;
     statemachine.matrix = matrix;
     statemachine.states = (State_t *)states;
+	
 
-}///
+}

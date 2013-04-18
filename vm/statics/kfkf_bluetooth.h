@@ -21,4 +21,4 @@ int I_GAIN_TMP;			/* IÉQÉCÉì(default:1) */
 int D_GAIN_TMP;			/* DÉQÉCÉì(default:1) */
 int ANGLE_TAIL;//=50;
 
-
+void receive_BT(S16 *matrix,S16 *states,StateMachine_t statemachine);
