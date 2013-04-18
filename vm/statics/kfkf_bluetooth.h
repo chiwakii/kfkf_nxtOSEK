@@ -6,6 +6,9 @@
 #define BT_PASS_KEY		"0753"	/* bluetoothパスキー */
 #define BT_RCV_BUF_SIZE 32		/* bluetooth受信パケットの大きさ */
 
+#define RESERVED_MATRIX_SIZE 3000
+#define RESERVED_STATES_SIZE 900
+
 S16 bt_receive_buf[BT_RCV_BUF_SIZE];	/* bluetooth受信パケットの宣言 */
 
 
@@ -21,4 +24,4 @@ int I_GAIN_TMP;			/* Iゲイン(default:1) */
 int D_GAIN_TMP;			/* Dゲイン(default:1) */
 int ANGLE_TAIL;//=50;
 
-void receive_BT(S16 *matrix,S16 *states,StateMachine_t statemachine);
+void receive_BT(StateMachine_t statemachine);
