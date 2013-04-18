@@ -1,6 +1,10 @@
 #include "../StateMachine.h"
 #include "kfkf_bluetooth.h"
-void receive_BT(short *matrix,short *states, StateMachine_t statemachine){
+void receive_BT( StateMachine_t statemachine){
+	
+	S16 matrix[RESERVED_MATRIX_SIZE];
+	S16 states[RESERVED_STATES_SIZE];
+	
     short num_of_events,num_of_states;
     int packet_no=1,ptr;
     ///////bluetooth
