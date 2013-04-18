@@ -39,11 +39,6 @@ S8 calc_variance(U16 *buf,int _len);
 //#define DEBUG
 
 
-S16 matrix[3000];
-S16 states[900];
-
-
-
 
 //we should make these valiables dynamic valiables
 int ptr;
