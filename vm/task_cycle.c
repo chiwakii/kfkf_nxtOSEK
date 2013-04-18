@@ -108,7 +108,6 @@ EventStatus_t eventStatus = {LIGHT_STATUS_UNDEFINED, 0, TOUCH_STATUS_NOTPRESSED,
 
 typedef struct tag_Logger{
 
-
 #define LOG_TURN 1
 #define LOG_PWM 2
 #define LOG_TARGET_ANGLE 3
