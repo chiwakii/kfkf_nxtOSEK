@@ -15,7 +15,7 @@ USER_LIB = nxtway_gs_balancer
 TARGET_SOURCES = \
 	task_cycle.c \
 	./statics/balancer_param.c \
-	StateMachine.c \
+	./statics/StateMachine.c \
 	./statics/kfkf_bluetooth.c
 	
 

@@ -4,7 +4,7 @@
 #include "ecrobot_interface.h"
 #include "statics/balancer.h"
 #include "statics/port_interface.h"
-#include "StateMachine.h"
+#include "statics/StateMachine.h"
 #include "statics/kfkf_bluetooth.h"
 #include "Logger.h"
 #include "SensorManager.h"
