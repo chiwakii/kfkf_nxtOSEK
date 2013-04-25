@@ -57,21 +57,7 @@ typedef struct tag_EventStatus {
 } EventStatus_t;
 
 
-StateMachine_t* StateMachine_create(S16 nevents, S16 nstates, S16 *_matrix, State_t *_states);
 
-/**
- * public
- */
-void StateMachine_sendEvent(StateMachine_t *stm, Event_t *event);
 
-/**
- * public
- */
-int StateMachine_execute(StateMachine_t *stm, Event_t *evevnt);
-
-/**
- * private
- */
-void StateMachine_action(State_t *state);
 
 #endif
