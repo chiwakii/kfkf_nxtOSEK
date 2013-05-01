@@ -26,7 +26,7 @@ void calibration(int *black,int *white,int *gray);
 void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R);
 S16 calc_angle2encoder(S16 angle);
 S8 calc_variance(U16 *buf,int _len);
-void receive_BT(StateMachine_t statemachine);
+void receive_BT();
 
 /////////////////////////////////
 //variables
@@ -42,18 +42,12 @@ void receive_BT(StateMachine_t statemachine);
 S16 num_of_events,num_of_states;
 //S16 *matrix;
 //S16 *states;
-S16 matrix[3000];
-S16 states[900];
+
 
 
 
 #endif
-#ifndef BLUETOOTH
-S16 num_of_events = 11;
-S16 num_of_states = 7;
-S16 matrix[] = {1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,3,-1,-1,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,7,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-S16 states[] = {0,0,0,0,0,0,1,0,0,0,0,0,2,2,100,0,0,0,3,1,0,0,0,0,4,0,0,0,0,0,5,0,0,0,0,0,6,2,50,0,0,0,7,0,0,0,0,0};
-#endif
+
 //we should make these valiables dynamic valiables
 int ptr;
 int i;
@@ -63,10 +57,7 @@ int count = 1;
 int g_count = 1;
 ///////state machine//////////////////////
 
-StateMachine_t statemachine;
-Event_t *events;
-//Controller_t *controller;
-Controller_t controller[1];
+
 
 ////////balance_control//////////////////////
 
@@ -76,36 +67,12 @@ Controller_t controller[1];
 	
 //////sensor/////////////////////
 Sensor_t *sensor;
+StateMachine_t statemachine;
+Event_t *events;
+//Controller_t *controller;
+Controller_t controller[1];
 
 
-//event manager
-typedef struct tag_EventStatus {
-#define LIGHT_STATUS_UNDEFINED 0
-#define LIGHT_STATUS_WHITE 1
-#define LIGHT_STATUS_BLACK 2
-#define TOUCH_STATUS_NOTPRESSED 0
-#define TOUCH_STATUS_PRESSED 1
-#define TIMER_PROCESSING 1
-#define STARTED 1
-	int light_status;
-	int gray_marker_count;
-	int touch_status;
-	int start_motor_count;
-	int motor_count;
-	int start_timer;
-	int timer_flag;
-	S16 limit_time;
-	byte started;
-	int circling_start_encoder_R;
-	int circling_target_angle_R;
-	byte circling_on;
-	byte bottle_left_length;
-	byte bottle_right_length;
-	byte bottle_judge;
-	S8 num_to_loop;
-	S8 loop_count;
-
-} EventStatus_t;
 EventStatus_t eventStatus = {LIGHT_STATUS_UNDEFINED, 0, TOUCH_STATUS_NOTPRESSED, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 Logger_t logger={0};
@@ -178,7 +145,7 @@ TASK(TaskBalance)
 {
 
 	if(init==0){
-		int packet_no=1;
+
 		balance_init();							
 		nxt_motor_set_count(NXT_PORT_C,0);
 		nxt_motor_set_count(NXT_PORT_B,0);
@@ -228,20 +195,7 @@ TASK(TaskBalance)
 	#endif
 
 #endif
-/*
-		//events
-		events=(Event_t *)malloc(sizeof(Event_t)*num_of_events);
-		if(events==NULL){}
-		for(i=0;i<num_of_events;i++){
-			events[i].event_no=(S16)i;		
-		}
 
-*/		
-		statemachine.num_of_events = num_of_events;
-		statemachine.num_of_states = num_of_states;
-		statemachine.current_state = 0;
-		statemachine.matrix = matrix;
-		statemachine.states = (State_t *)states;
 	#ifdef DEBUG
 		display_clear(0);
 		display_goto_xy(0, 1);
@@ -1298,7 +1252,10 @@ S8 calc_variance(U16 *buf,int _len){
 }
 
 
-void receive_BT(StateMachine_t statemachine){
+void receive_BT(){
+		int packet_no=1;
+		S16 matrix[3000];
+		S16 states[900];
 		///////bluetooth
 		//wait for　bluetooth
 		////////////////////////
@@ -1419,6 +1376,11 @@ void receive_BT(StateMachine_t statemachine){
 				packet_no++;
 				 }
 		}
+		statemachine.num_of_events = num_of_events;
+		statemachine.num_of_states = num_of_states;
+		statemachine.current_state = 0;
+		statemachine.matrix = matrix;
+		statemachine.states = (State_t *)states;
 
 
 
