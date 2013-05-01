@@ -4,7 +4,7 @@
 #include "statics/balancer.h"
 #include "statics/port_interface.h"
 #include "bluetooth_interface.h"
-#include "StateMachine.h"
+#include "statics/StateMachine.h"
 #include "SensorManager.h"
 #include "Controller.h"
 #include "Logger.h"
@@ -26,7 +26,7 @@ void calibration(int *black,int *white,int *gray);
 void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R);
 S16 calc_angle2encoder(S16 angle);
 S8 calc_variance(U16 *buf,int _len);
-void receive_BT();
+void receive_BT(StateMachine_t *sm);
 
 /////////////////////////////////
 //variables
@@ -49,10 +49,8 @@ S16 num_of_events,num_of_states;
 #endif
 
 //we should make these valiables dynamic valiables
-int ptr;
+
 int i;
-int rest;
-int i_value = 0;
 int count = 1;
 int g_count = 1;
 ///////state machine//////////////////////
@@ -175,144 +173,19 @@ TASK(TaskBalance)
 #ifdef BLUETOOTH
 
 
-	receive_BT();
+	receive_BT(&statemachine);
 
-	#ifdef DEBUG
-
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("S0_1");
-		display_int(packet_no,6);
-		display_update();
-		systick_wait_ms(1000);
-
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("states end");
-		display_update();
-		systick_wait_ms(1000);
-	
-	#endif
 
 #endif
 
-	#ifdef DEBUG
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("events end");
-		display_update();
-		systick_wait_ms(1000);
-	#endif
 
-
-/////////////////////////////////////////////////////////////////////////////////
-#ifdef SEND_STATE
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("sending state");
-		display_update();
-
-			ecrobot_bt_data_logger(statemachine.num_of_states,1);
-	systick_wait_ms(50);
-			ecrobot_bt_data_logger(statemachine.num_of_events,2);
-			systick_wait_ms(50);
-		
-		
-		
-			for(i=0;i<num_of_events*num_of_states;i++){
-					
-					ecrobot_bt_data_logger((S8)(statemachine.matrix[i]),i);
-					systick_wait_ms(50);
-			}
-			for(i=0;i<num_of_states;i++){
-				ecrobot_bt_data_logger(statemachine.states[i].state_no,i);
-				systick_wait_ms(50);
-				ecrobot_bt_data_logger(statemachine.states[i].action_no,10+i);
-				systick_wait_ms(50);
-				ecrobot_bt_data_logger(statemachine.states[i].value0,20+i);
-				systick_wait_ms(50);		
-				ecrobot_bt_data_logger(statemachine.states[i].value1,30+i);
-				systick_wait_ms(50);
-				ecrobot_bt_data_logger(statemachine.states[i].value2,40+i);
-				systick_wait_ms(50);		
-				ecrobot_bt_data_logger(statemachine.states[i].value3,50+i);
-				systick_wait_ms(50);
-
-			}
-			for(i=0;i<num_of_events;i++){
-				ecrobot_bt_data_logger(events[i].event_no,31);
-				systick_wait_ms(50);
-			}
-
-//////////////////////////////////////////////////////////////////////////////
-#endif
-
-
-/*	
-		controller = (Controller_t *)malloc(sizeof(Controller_t));
-		if(controller ==NULL){
-			
-			display_clear(0);
-			display_goto_xy(0, 1);
-			display_string("malloc error controller:");
-			display_update();
-			systick_wait_ms(10000);
-		}
-*/
-/*		controller->speed = 0;
-		controller->forward_power=0;
-		controller->turn=0;
-		controller->balance_on=0;
-		controller->pid_on=0;
-		controller->wg_pid_on=0;
-		controller->tail_on=0;
-		controller->tail_ang=0;
-		controller->tail_run_speed=0;
-		//controller->gyro_offset=610;
-		controller->step_offset=10000;
-		controller->gray_offset = 10000;
-		controller->color_threshold = 660;
-		controller->P_gain=1.0;
-		controller->I_gain=1.0;
-		controller->D_gain=1.0;
-
-		sensor->light_min=1000;
-		sensor->light_max=0;
-		sensor->bottle_is_left=0;
-		sensor->bottle_is_right=0;
-*/		   
-	#ifdef DEBUG
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("controller end");
-		display_update();
-		systick_wait_ms(1000);
-	#endif
 
 		gyro_calibration();
 		calibration(&sensor->black,&sensor->white,&sensor->gray);
 		
 		init_nxt();
 
-/*		sensor->threshold_gray=sensor->gray;
-		controller->color_threshold = sensor->gray;
-		sensor->prev_light_value=controller->color_threshold;
 
-		for(int m=0 ; m < sensor->LIGHT_BUFFER_LENGTH ; m++){
-			sensor->light_buffer[m]=sensor->gray;
-		}
-		for(int m=0;m<sensor->GYRO_BUFFER_LENGTH;m++){
-			sensor->gyro_buffer[m] = controller->gyro_offset;
-		}
-*/
-
-	#ifdef DEBUG
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("init end");
-		display_update();
-		systick_wait_ms(1000);
-	#endif
 	}
 	
 
@@ -1252,8 +1125,9 @@ S8 calc_variance(U16 *buf,int _len){
 }
 
 
-void receive_BT(){
+void receive_BT(StateMachine_t *sm){
 		int packet_no=1;
+		int ptr=0;
 		S16 matrix[3000];
 		S16 states[900];
 		///////bluetooth
@@ -1291,8 +1165,7 @@ void receive_BT(){
 		}
 		
 */
-		
-		ptr=0;
+		;
 		while(1/*ptr+14 <num_of_states*num_of_events*/){
 			int i=0;
 			systick_wait_ms(100);
@@ -1376,11 +1249,11 @@ void receive_BT(){
 				packet_no++;
 				 }
 		}
-		statemachine.num_of_events = num_of_events;
-		statemachine.num_of_states = num_of_states;
-		statemachine.current_state = 0;
-		statemachine.matrix = matrix;
-		statemachine.states = (State_t *)states;
+		sm->num_of_events = num_of_events;
+		sm->num_of_states = num_of_states;
+		sm->current_state = 0;
+		sm->matrix = matrix;
+		sm->states = (State_t *)states;
 
 
 

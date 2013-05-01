@@ -13,8 +13,8 @@ USER_LIB = nxtway_gs_balancer
 # User applicaion source
 TARGET_SOURCES = \
 	task_cycle.c \
-	balancer_param.c \
-	StateMachine.c
+	statics/balancer_param.c \
+	statics/StateMachine.c
 
 # OSEK OIL file
 TOPPERS_OSEK_OIL_SOURCE = ./task_cycle.oil
