@@ -1,5 +1,5 @@
 # Target specific macros
-TARGET = TASK_CYCLE_OLD
+TARGET = TASK_CYCLE
 
 NXT_OSEK_ROOT = /cygwin/nxtOSEK
 
