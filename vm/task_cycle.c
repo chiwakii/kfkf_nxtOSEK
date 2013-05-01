@@ -1063,11 +1063,11 @@ void gyro_calibration(){
 		ecrobot_sound_tone(100,10,50);
 		systick_wait_ms(1000);
 	};
-
+    /*
 	controller.gyro_offset=sum/calibration_times;
 	sensor.prev_gyro_value = controller.gyro_offset;
 	controller.base_gyro_offset = controller.gyro_offset;
-	
+	*/
 	display_clear(0);				
 	display_goto_xy(0, 1);
 	display_string("sum=");
