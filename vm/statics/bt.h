@@ -1,6 +1,9 @@
 /*
  *  bluetooth_interface.h
  */
+ 
+ #include "./StateMachine.h"
+ 
 
 /* NXT Bluetooth configuration */
 #define BT_PASS_KEY		"0753"	/* bluetoothパスキー */
@@ -21,4 +24,5 @@ int I_GAIN_TMP;			/* Iゲイン(default:1) */
 int D_GAIN_TMP;			/* Dゲイン(default:1) */
 int ANGLE_TAIL;//=50;
 
+void receive_BT(StateMachine_t *sm);
 
