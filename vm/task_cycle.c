@@ -7,6 +7,7 @@
 #include "StateMachine.h"
 #include "SensorManager.h"
 #include "Controller.h"
+#include "Logger.h"
 #include <math.h>
 
 DeclareCounter(SysTimerCnt);
