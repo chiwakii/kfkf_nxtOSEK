@@ -1,2 +1,2 @@
 echo Executing ramboot to upload TASK_CYCLE_ram.bin...
- ../../../ecrobot/../bin/ramboot.exe ./TASK_CYCLE_ram.bin
+ /cygdrive/c/cygwin/nxtOSEK/ecrobot/../bin/ramboot.exe ./TASK_CYCLE_ram.bin

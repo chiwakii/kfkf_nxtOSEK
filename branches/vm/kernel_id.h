@@ -1,8 +1,8 @@
 /*
  *  kernel_id.h
- *  Wed Aug 01 07:44:28 2012
+ *  Fri Apr 26 13:30:30 2013
  *  SG Version 2.00
- *  sg.exe ./task_cycle.oil -os=ECC2 -I../../../ecrobot/../toppers_osek/sg/impl_oil -template=../../../ecrobot/../toppers_osek/sg/lego_nxt.sgt
+ *  sg.exe ./task_cycle.oil -os=ECC2 -IC:/cygwin/nxtOSEK/toppers_osek/sg/impl_oil -template=C:/cygwin/nxtOSEK/toppers_osek/sg/lego_nxt.sgt
  */
 #ifndef KERNEL_ID_H
 #define KERNEL_ID_H

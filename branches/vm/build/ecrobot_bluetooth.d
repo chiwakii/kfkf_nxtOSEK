@@ -1,5 +1,5 @@
 build/ecrobot_bluetooth.o:  \
- ../../../ecrobot/../ecrobot/c/ecrobot_bluetooth.c \
+ /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_bluetooth.c \
   /cygdrive/C/cygwin/GNUARM/bin/../lib/gcc/arm-elf/4.0.2/include/stddef.h \
   /cygdrive/C/cygwin/GNUARM/bin/../lib/gcc/arm-elf/4.0.2/../../../../arm-elf/sys-include/string.h \
   /cygdrive/C/cygwin/GNUARM/bin/../lib/gcc/arm-elf/4.0.2/../../../../arm-elf/sys-include/_ansi.h \
@@ -11,45 +11,44 @@ build/ecrobot_bluetooth.o:  \
   /cygdrive/C/cygwin/GNUARM/bin/../lib/gcc/arm-elf/4.0.2/../../../../arm-elf/sys-include/sys/_types.h \
   /cygdrive/C/cygwin/GNUARM/bin/../lib/gcc/arm-elf/4.0.2/../../../../arm-elf/sys-include/sys/lock.h \
   /cygdrive/C/cygwin/GNUARM/bin/../lib/gcc/arm-elf/4.0.2/../../../../arm-elf/sys-include/sys/string.h \
-  ../../../ecrobot/../ecrobot/c/ecrobot_base.h \
-  ../../../ecrobot/../ecrobot/bios/bios.h \
-  ../../../ecrobot/../ecrobot/bios/flash_loader.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/flashprog.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/mytypes.h \
-  ../../../ecrobot/../ecrobot/c/ecrobot_types.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/mytypes.h \
-  ../../../ecrobot/../ecrobot/c/ecrobot_private.h \
-  ../../../ecrobot/../ecrobot/c/ecrobot_interface.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/interrupts.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/aic.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/AT91SAM7.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/uart.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/systick.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/nxt_avr.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/twi.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/platform_hooks.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/types.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/platform_config.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/systime.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/classes.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/types.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/language.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/classes.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/memory.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/interpreter.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/constants.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/javavm/poll.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/nxt_lcd.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/nxt_motors.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/sensors.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/display.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/i2c.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/bt.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/sound.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/udp.h \
-  ../../../ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/hs.h \
-  ../../../ecrobot/../ecrobot/c/ecrobot_bluetooth.h \
-  ../../../ecrobot/../ecrobot/c/ecrobot_usb.h \
-  ../../../ecrobot/../ecrobot/c/ecrobot_rs485.h \
-  ../../../ecrobot/../ecrobot/c/ecrobot_mindsensors.h \
-  ../../../ecrobot/../ecrobot/c/colorsensor.h
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_base.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/bios/bios.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/bios/flash_loader.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/flashprog.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/mytypes.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_types.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/mytypes.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_private.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_interface.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/interrupts.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/aic.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/AT91SAM7.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/uart.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/systick.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/nxt_avr.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/twi.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/platform_hooks.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/types.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/platform_config.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/systime.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/classes.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/types.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/language.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/classes.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/memory.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/interpreter.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/constants.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/javavm/poll.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/nxt_lcd.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/nxt_motors.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/sensors.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/display.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/i2c.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/bt.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/sound.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/udp.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../lejos_nxj/src//nxtvm/platform/nxt/hs.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_bluetooth.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_usb.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_rs485.h \
+  /cygdrive/c/cygwin/nxtOSEK/ecrobot/../ecrobot/c/ecrobot_mindsensors.h

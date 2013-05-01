@@ -21,4 +21,4 @@ TOPPERS_OSEK_OIL_SOURCE = ./task_cycle.oil
 
 # Don't modify below part
 O_PATH ?= build
-include ../../../ecrobot/ecrobot.mak
+include /cygdrive/c/cygwin/nxtOSEK/ecrobot/ecrobot.mak

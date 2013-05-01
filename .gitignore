@@ -1,0 +1,10 @@
+.DS_Store
+vm/*.sh
+vm/build/
+vm/*.rxe
+vm/*.bin
+vm/*.elf
+vm/*.map
+vm/kernel_cfg.c
+vm/kernel_id.h
+vm/implementation.oil
