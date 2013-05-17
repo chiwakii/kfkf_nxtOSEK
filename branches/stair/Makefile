@@ -1,5 +1,5 @@
 # nxtOSEKルートディレクトリ
-NXT_OSEK_ROOT = /cygwin/nxtOSEK
+NXT_OSEK_ROOT = ../../../../nxtOSEK
 
 # ターゲット実行形式ファイル名
 TARGET = balance_linetrace
@@ -21,4 +21,4 @@ TOPPERS_OSEK_OIL_SOURCE =./balance_linetrace.oil
 # 下記のマクロは変更しないでください
 O_PATH ?= build
 
-include ../../../ecrobot/ecrobot.mak
+include ../../../../nxtOSEK/ecrobot/ecrobot.mak
