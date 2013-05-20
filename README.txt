@@ -1,3 +1,0 @@
-robocon
-kadono
-kawasaki
