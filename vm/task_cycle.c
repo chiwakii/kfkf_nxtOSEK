@@ -144,7 +144,6 @@ TASK(TaskBalance)
 		nxt_motor_set_count(NXT_PORT_B,0);
 		init =1;
 		
-
 		sensor = (Sensor_t *)malloc(sizeof(Sensor_t));
 		if(sensor==NULL){
 			
@@ -154,6 +153,7 @@ TASK(TaskBalance)
 			display_update();
 		}
 		
+         
 		sensor->light = ecrobot_get_light_sensor(LIGHT_SENSOR);
 		sensor->gyro= ecrobot_get_gyro_sensor(GYRO_SENSOR);
 		sensor->touched = ecrobot_get_touch_sensor(TOUCH_SENSOR);
