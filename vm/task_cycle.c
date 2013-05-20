@@ -62,7 +62,7 @@ Controller_t controller;
 //////sensor/////////////////////
 Sensor_t sensor;  //initialize later
 EventStatus_t eventStatus = {LIGHT_STATUS_UNDEFINED, 0, TOUCH_STATUS_NOTPRESSED, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0};
-Logger_t logger={0};
+Logger_t logger={LOG_NO};
 
 
 
