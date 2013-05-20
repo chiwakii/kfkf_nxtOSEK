@@ -2,8 +2,8 @@
 #include "kernel.h"
 #include "kernel_id.h"
 #include "ecrobot_interface.h"
+#include "nxt_config.h"
 #include "statics/balancer.h"
-#include "statics/port_interface.h"
 #include "statics/StateMachine.h"
 #include "statics/kfkf_bluetooth.h"
 #include "Logger.h"
@@ -127,8 +127,8 @@ TASK(TaskBalance)
 
 	if(init==0){
 		balance_init();							
-		nxt_motor_set_count(NXT_PORT_C,0);
-		nxt_motor_set_count(NXT_PORT_B,0);
+		nxt_motor_set_count(RIGHT_MOTOR,0);
+		nxt_motor_set_count(LEFT_MOTOR,0);
 		init =1;
 		
 
