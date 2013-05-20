@@ -11,13 +11,15 @@
 
 #include "ecrobot_interface.h"
 
-/* NXT motor port configuration */
-#define PORT_MOTOR_R	NXT_PORT_B
-#define PORT_MOTOR_L	NXT_PORT_C
 /* NXT sensor port configuration */
-#define PORT_SONAR		NXT_PORT_S2
-#define PORT_GYRO		NXT_PORT_S4
-/* NXT Bluetooth configuration */
-#define BT_PASS_KEY		"1234"
+#define GYRO_SENSOR NXT_PORT_S1
+#define SONAR_SENSOR NXT_PORT_S2
+#define LIGHT_SENSOR NXT_PORT_S3
+#define TOUCH_SENSOR NXT_PORT_S4
+
+/* NXT motor port configuration */
+#define TAIL_MOTOR NXT_PORT_A
+#define LEFT_MOTOR NXT_PORT_B
+#define RIGHT_MOTOR NXT_PORT_C
 
 #endif
