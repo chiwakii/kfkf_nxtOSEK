@@ -45,8 +45,6 @@ S8 calc_variance(U16 *buf,int _len);
 int i;
 int rest;
 int i_value = 0;
-int count = 1;
-int g_count = 1;
 ///////state machine//////////////////////
 
 StateMachine_t statemachine;
@@ -381,61 +379,85 @@ TASK(TaskBalance)
 
 ###################################################################
 */
-int sonar_cnt=0;
+
+int g_LightCnt = 1;
+int g_GyroCnt = 1;
+int g_SonarCnt = 0;
 
 TASK(TaskSensor)
 {
-
+	//==========================================
+	//	Data Update of Sensor
+	//==========================================
+	//--------------------------------
+	//	Light Data
+	//--------------------------------
 	sensor.prev_light_value = sensor.light;
-	sensor.prev_gyro_value= sensor.gyro;
-
-	sensor.light_buffer[count]=sensor.prev_light_value;
-	count++;
-	if(count>=sensor.LIGHT_BUFFER_LENGTH){
-		count=0;
-	}
-	sensor.gyro_buffer[g_count]=sensor.prev_gyro_value;
-	g_count++;
-	if(g_count>=sensor.GYRO_BUFFER_LENGTH){
-		g_count=0;
+	sensor.light_buffer[g_LightCnt] = sensor.prev_light_value;
+	g_LightCnt++;
+	if(g_LightCnt >= sensor.LIGHT_BUFFER_LENGTH){
+		g_LightCnt = 0;
 	}
 
+	// Update Data of Light Sensor
 	sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
-	if(sonar_cnt>10){
-		sensor.sonar = ecrobot_get_sonar_sensor(SONAR_SENSOR);
-		sonar_cnt=0;
-	}else{
-		sonar_cnt++;	
+
+	//--------------------------------
+	//	Gyro Data
+	//--------------------------------
+	sensor.prev_gyro_value= sensor.gyro;
+	sensor.gyro_buffer[g_GyroCnt] = sensor.prev_gyro_value;
+	g_GyroCnt++;
+	if(g_GyroCnt >= sensor.GYRO_BUFFER_LENGTH){
+		g_GyroCnt = 0;
 	}
+
+	// Update Data of Gyro Sensor
+	sensor.gyro= ecrobot_get_gyro_sensor(GYRO_SENSOR);
+
+	//--------------------------------
+	//	Sonar Data
+	//--------------------------------
+	if(g_SonarCnt > 10){
+		// Update Data of Sonar Sensor
+		sensor.sonar = ecrobot_get_sonar_sensor(SONAR_SENSOR);
+		g_SonarCnt = 0;
+	}else{
+		g_SonarCnt++;
+	}
+
+	//--------------------------------
+	//	Touch Data
+	//--------------------------------
+	// Update Data of Touch Sensor
 	sensor.touched = ecrobot_get_touch_sensor(TOUCH_SENSOR);
-	sensor.gyro= ecrobot_get_gyro_sensor(GYRO_SENSOR);	
 
 
+	//==========================================
+	//	calculation
+	//==========================================
 	
 	//calculate light valiance
-
 	sensor.light_V = 1.0*calc_variance(sensor.light_buffer,V_LIGHT_BUFFER_LENGTH);
 	
 	//calculate gyro valiance
-
 	sensor.gyro_V = 1.0*calc_variance(sensor.gyro_buffer,V_GYRO_BUFFER_LENGTH);
 
 
-	if(eventStatus.bottle_right_length>0){
-		if(sensor.sonar <eventStatus.bottle_right_length){
+	//Bottle Detecting
+	if(eventStatus.bottle_right_length > 0){
+		if(sensor.sonar < eventStatus.bottle_right_length){
 			sensor.bottle_is_right=1;
 		}
 	}
-	if(eventStatus.bottle_left_length>0){
-		if(sensor.sonar <eventStatus.bottle_left_length){
+	if(eventStatus.bottle_left_length > 0){
+		if(sensor.sonar < eventStatus.bottle_left_length){
 			sensor.bottle_is_left=1;
 		}
 	}
 
 
-
 	TerminateTask();
-
 }
 
 /*
@@ -1206,6 +1228,19 @@ S16 calc_angle2encoder(S16 _ang){
 
 
 }
+
+/*
+***************************************************************
+	name:calc_variance
+	description:
+
+	Parameter:
+		U16* buf: An array of sensor data.
+		int _len: length of an array
+	Return Value:
+
+***************************************************************
+*/
 S8 calc_variance(U16 *buf,int _len){
 	//calculate light valiance
 	long sum=0;
