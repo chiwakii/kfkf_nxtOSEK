@@ -12,7 +12,7 @@
 
 
 DeclareCounter(SysTimerCnt);
-DeclareTask(TaskInit);
+//DeclareTask(TaskInit);
 DeclareTask(TaskMain);
 DeclareTask(TaskBalance);				/* Task to controll balance*/
 DeclareTask(TaskSensor);				/* Task to keep sensoring */
@@ -101,15 +101,20 @@ void user_1ms_isr_type2(void){
 	SignalCounter(SysTimerCnt);   
 }
 
+/*
 Task(TaskInit){
 	TerminateTask();
 }
+*/
 
+/*
+###################################################################
+	Task
+	name: TaskMain
+	description:
 
-/////////////////////
-//TaskMain
-////////////////////
-
+###################################################################
+*/
 TASK(TaskMain){
 	event_manager();	
 
@@ -117,11 +122,14 @@ TASK(TaskMain){
 }
 
 
-//////////////////////////////////////
-///TaskBalance
-///
-//////////////////////////////////
+/*
+###################################################################
+	Task
+	name: TaskBalance
+	description:
 
+###################################################################
+*/
 TASK(TaskBalance)
 {
 
@@ -270,19 +278,19 @@ TASK(TaskBalance)
 	}
 	
 
-	int before=0, standard=0;	// beforeAEAE?A§Aac?AEAAeA∑A?AAstandardAEoAeaAuR?AAAAeA∑A 
+	int before=0, standard=0;	// beforeAEAE?AﾂｧAac?AEAAeA竏羨?AAstandardAEoAeaAuR?AAAAeA竏羨
 	float integral=0;
 
 	if(controller.pid_on==1){
 		sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
 		before = standard;
-		standard = sensor.light - sensor.gray;					// AAeA∑A?CiAenAaAE
+		standard = sensor.light - sensor.gray;					// AAeA竏羨?CiAenAaAE
 		controller.integral += (standard - before)/2.0 * 0.004;	
 
-		//	controller.turn = 1 * standard *100 / (black-white) + 1 * controller.integral / (black-white) * 100 + 1 * (sensor.light-sensor.prev_light_value) / (black-white) * 100;	//EoaAouAA§ERaAAAE
+		//	controller.turn = 1 * standard *100 / (black-white) + 1 * controller.integral / (black-white) * 100 + 1 * (sensor.light-sensor.prev_light_value) / (black-white) * 100;	//EoaAouAAﾂｧERaAAAE
 
-		controller.turn = controller.P_gain * standard *100 / (sensor.black-sensor.white) + controller.I_gain * integral / (sensor.black-sensor.white) * 100 + controller.D_gain * (sensor.light-sensor.prev_light_value) / (sensor.black-sensor.white) * 100;	// EoaAouAA§ERaAAAE
-		sensor.prev_light_value = sensor.light;		//1?A§Aac?AEEoe?Ca?Ai?CiE†oA\AE
+		controller.turn = controller.P_gain * standard *100 / (sensor.black-sensor.white) + controller.I_gain * integral / (sensor.black-sensor.white) * 100 + controller.D_gain * (sensor.light-sensor.prev_light_value) / (sensor.black-sensor.white) * 100;	// EoaAouAAﾂｧERaAAAE
+		sensor.prev_light_value = sensor.light;		//1?AﾂｧAac?AEEoe?Ca?Ai?CiE窶�A\AE
 		controller.forward_power=controller.speed;
 	}
 	else if(controller.wg_pid_on==1){
@@ -291,7 +299,7 @@ TASK(TaskBalance)
 		standard = sensor.light - sensor.white_gray_threshold;
 		controller.integral += (standard - before)/2.0 * 0.004;
 
-		controller.turn = controller.P_gain * standard *100 / (sensor.calib_gray-sensor.white) + controller.I_gain * integral / (sensor.calib_gray-sensor.white) * 100 + controller.D_gain * (sensor.light-sensor.prev_light_value) / (sensor.calib_gray-sensor.white) * 100;	// 旋回値計?E
+		controller.turn = controller.P_gain * standard *100 / (sensor.calib_gray-sensor.white) + controller.I_gain * integral / (sensor.calib_gray-sensor.white) * 100 + controller.D_gain * (sensor.light-sensor.prev_light_value) / (sensor.calib_gray-sensor.white) * 100;	// 譌句屓蛟､險�E
 		sensor.prev_light_value = sensor.light;
 		controller.forward_power=controller.speed;
 	}
@@ -303,21 +311,21 @@ TASK(TaskBalance)
 
 	
 	if(controller.balance_on==1){
-		balance_control(					//?Ee?Ec?E??CμAPI?AAAeo?A?Aa∫?AAE
-			(float)controller.forward_power,		//AacEA?AEeAaaEAAAeΩ‰a§(-100(Ae?EoaAouEuAA§s)?100(A∑¶EoaAouEuAA§s))
-			(float)controller.turn,			//EoaAouAeΩ‰a§(-100?100)
-			(float)ecrobot_get_gyro_sensor(NXT_PORT_S1),	//?C??E￡?C§?E≠?Ca?E??CμAA§
-			(float)controller.gyro_offset,				//?C??E￡?C§?E≠?Ca?E??Cμ?C??Ei?Ca?EAEEaAA§
-			(float)nxt_motor_get_count(NXT_PORT_C),		//A∑¶?E￠?Eo?Co?CR?E??C??Eo?EAAA§
-			(float)nxt_motor_get_count(NXT_PORT_B),		//Ae??E￠?Eo?Co?CR?E??C??Eo?EAAA§
-			(float)ecrobot_get_battery_voltage(),		//?Ee?EE?EAEE?EoaAusAA§[mV]
+		balance_control(					//?Ee?Ec?E??CﾎｼAPI?AAAeo?A?Aa竏ｫ?AAE
+			(float)controller.forward_power,		//AacEA?AEeAaaEAAAeﾎｩ窶ｰaﾂｧ(-100(Ae?EoaAouEuAAﾂｧs)?100(A竏堕ｶEoaAouEuAAﾂｧs))
+			(float)controller.turn,			//EoaAouAeﾎｩ窶ｰaﾂｧ(-100?100)
+			(float)ecrobot_get_gyro_sensor(NXT_PORT_S1),	//?C??E�｡?Cﾂｧ?E竕�Ca?E??CﾎｼAAﾂｧ
+			(float)controller.gyro_offset,				//?C??E�｡?Cﾂｧ?E竕�Ca?E??Cﾎｼ?C??Ei?Ca?EAEEaAAﾂｧ
+			(float)nxt_motor_get_count(NXT_PORT_C),		//A竏堕ｶ?E��Eo?Co?CR?E??C??Eo?EAAAﾂｧ
+			(float)nxt_motor_get_count(NXT_PORT_B),		//Ae??E��Eo?Co?CR?E??C??Eo?EAAAﾂｧ
+			(float)ecrobot_get_battery_voltage(),		//?Ee?EE?EAEE?EoaAusAAﾂｧ[mV]
 
-			&pwm_L,						//A∑¶?E￠?Eo?CoPWMAa∫AaoAA§AEaEaa?CaAA§AEAE
-			&pwm_R						//Ae??E￠?Eo?CoPWMAa∫AaoAA§AEaEaa?CaAA§AEAE
+			&pwm_L,						//A竏堕ｶ?E��Eo?CoPWMAa竏ｫAaoAAﾂｧAEaEaa?CaAAﾂｧAEAE
+			&pwm_R						//Ae??E��Eo?CoPWMAa竏ｫAaoAAﾂｧAEaEaa?CaAAﾂｧAEAE
 
 		);
 
-		nxt_motor_set_speed(NXT_PORT_C, (S8)(pwm_L*controller.left_motor_rate), 1);		//?E￠?Eo?Co?A´EaAEa§?CiAAE?AAE
+		nxt_motor_set_speed(NXT_PORT_C, (S8)(pwm_L*controller.left_motor_rate), 1);		//?E��Eo?Co?AﾂｴEaAEaﾂｧ?CiAAE?AAE
 		nxt_motor_set_speed(NXT_PORT_B, (S8)(pwm_R*controller.right_motor_rate), 1);
 	
 	}else if(controller.tail_on==1){
@@ -365,15 +373,20 @@ TASK(TaskBalance)
 
 }
 
-//////////////////////
-//TaskSensor
-//////////////////////
+/*
+###################################################################
+	Task
+	name: TaskSensor
+	description:
+
+###################################################################
+*/
 int sonar_cnt=0;
 
 TASK(TaskSensor)
 {
 
-		sensor.prev_light_value = sensor.light;
+	sensor.prev_light_value = sensor.light;
 	sensor.prev_gyro_value= sensor.gyro;
 
 	sensor.light_buffer[count]=sensor.prev_light_value;
@@ -425,9 +438,14 @@ TASK(TaskSensor)
 
 }
 
-////////////////////////
-//TaskLogger
-////////////////////////
+/*
+###################################################################
+	Task
+	name: TaskLogger
+	description:
+
+###################################################################
+*/
 TASK(TaskLogger){
 
 	S8 _ang = nxt_motor_get_count(RIGHT_MOTOR)-eventStatus.circling_start_encoder_R -eventStatus.circling_target_angle_R;
@@ -478,8 +496,8 @@ TASK(TaskLogger){
 
 int sendevent(event_id);
 
-/*-------------------------
- 
+/*
+==========================================================
  Event
  ID description
  0	transition with no event
@@ -497,8 +515,8 @@ int sendevent(event_id);
  12 finish circling
  13 (some event1)
  14 (some event2)
- 
- -------------------------*/
+==========================================================
+*/
 void event_manager(){
 	display_clear(0);
 	display_goto_xy(0, 1);
@@ -658,7 +676,8 @@ void event_manager(){
 
 
 
-/*-----------------------------
+/*
+==========================================================
  Action
  ID description
  0	do nothing
@@ -684,7 +703,8 @@ void event_manager(){
  20 set sonar value
  21 look for bottle while turning right before drift turn 
  22 look for bottle while turning left before dift turn
-  ------------------------------*/
+==========================================================
+*/
 
 void StateMachine_action(State_t *state) {
 	switch(state->action_no) {
@@ -944,6 +964,17 @@ void StateMachine_action(State_t *state) {
 	}
 }
 
+/*
+***************************************************************
+	name: sendevent
+	Description:
+
+	Parameter: event_id
+		The IDs of events to happen during the run.
+	Return Value:
+
+***************************************************************
+*/
 int sendevent(event_id) {
 	S16 next_state = -1;
 	S16 i = 0;
@@ -966,7 +997,7 @@ int sendevent(event_id) {
 }
 
 //*******************************************
-//calibration the white and black value
+//	calibration the white and black value
 //******************************************
 void calibration(int *black,int *white,int *gray){	
 
@@ -1035,7 +1066,7 @@ void calibration(int *black,int *white,int *gray){
 }
 
 //***********************************
-//calibration the base gyro value
+//	calibration the base gyro value
 //**********************************
 
 void gyro_calibration(){
