@@ -15,11 +15,11 @@ CPU ATMEL_AT91SAM7S256
   };
 
 
-  APPMODE appmode1{}; 	/* ƒAƒvƒŠƒP[ƒVƒ‡ƒ“ƒ‚[ƒh‚ğ’è‹` */
+  APPMODE appmode1{}; 	/* ï¿½Aï¿½vï¿½ï¿½ï¿½Pï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½` */
 
 
 
-  TASK TaskBalance						/* TaskBalance ‚ğ’è‹` */
+  TASK TaskActuator						/* TaskActuator ï¿½ï¿½ï¿½` */
   {
     AUTOSTART = TRUE { APPMODE = appmode1 ; };
     PRIORITY = 3;
@@ -30,7 +30,7 @@ CPU ATMEL_AT91SAM7S256
     EVENT = EventSleep;
   };
 
-  TASK TaskSensor						/* TaskSensor ‚ğ’è‹` */
+  TASK TaskSensor						/* TaskSensor ï¿½ï¿½ï¿½` */
   {
     AUTOSTART = FALSE;
     PRIORITY = 2;
@@ -41,7 +41,7 @@ CPU ATMEL_AT91SAM7S256
     EVENT = EventSleep;
   };
 
-  TASK TaskMain						/* Task_bg ‚ğ’è‹` */
+  TASK TaskMain						/* Task_bg ï¿½ï¿½ï¿½` */
   {
     AUTOSTART = TRUE { APPMODE = appmode1; };
     PRIORITY = 2;
@@ -52,7 +52,7 @@ CPU ATMEL_AT91SAM7S256
     EVENT = EventSleep;
   };
 
-  TASK TaskLogger						/* Task_bg ‚ğ’è‹` */
+  TASK TaskLogger						/* Task_bg ï¿½ï¿½ï¿½` */
   {
     AUTOSTART = TRUE { APPMODE = appmode1; };
     PRIORITY = 2;
@@ -65,19 +65,19 @@ CPU ATMEL_AT91SAM7S256
 
 
 
-  COUNTER SysTimerCnt			/* SysTimerCnt‚ğ’è‹` */
+  COUNTER SysTimerCnt			/* SysTimerCntï¿½ï¿½ï¿½` */
   {
     MINCYCLE = 1;
     MAXALLOWEDVALUE = 10000;
     TICKSPERBASE = 1; /* One tick is equal to 1msec */ 
   };
 
-  ALARM cyclic_alarm1		/* üŠúƒAƒ‰[ƒ€1‚ğ’è‹` */
+  ALARM cyclic_alarm1		/* ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½[ï¿½ï¿½1ï¿½ï¿½ï¿½` */
   {
     COUNTER = SysTimerCnt;
     ACTION = ACTIVATETASK
     {
-      TASK = TaskBalance;
+      TASK = TaskActuator;
     };
     AUTOSTART = TRUE
     {

@@ -12,11 +12,11 @@
 
 
 DeclareCounter(SysTimerCnt);
-//DeclareTask(TaskInit);
-DeclareTask(TaskMain);
-DeclareTask(TaskBalance);				/* Task to controll balance*/
-DeclareTask(TaskSensor);				/* Task to keep sensoring */
-DeclareTask(TaskLogger);				/*Task to send log*/
+DeclareTask(TaskMain);					/* Task to manage behavior of robot */
+DeclareTask(TaskActuator);				/* Task to actuate */
+DeclareTask(TaskSensor);				/* Task to sense */
+DeclareTask(TaskLogger);				/* Task to send logging data */
+
 
 ////////////////////////////////////////
 ///prototype declarationf
@@ -99,11 +99,6 @@ void user_1ms_isr_type2(void){
 	SignalCounter(SysTimerCnt);   
 }
 
-/*
-Task(TaskInit){
-	TerminateTask();
-}
-*/
 
 /*
 ###################################################################
@@ -113,8 +108,24 @@ Task(TaskInit){
 
 ###################################################################
 */
-TASK(TaskMain){
-	event_manager();	
+TASK(TaskMain)
+{
+
+	switch(/*robot state variable*/)
+	{
+	case STOP:	 /* Stops and Initialize */
+		break;
+	case BTCOMU: /* Comunication by Bluetooth */
+		receive_BT(statemachine);
+		break;
+	case CALIB:	 /* Do calibration */
+		gyro_calibration();
+		calibration(&sensor.black,&sensor.white,&sensor.gray);
+		break;
+	case RUN:	 /* Challenge contest */
+		event_manager();
+		break;
+	}
 
 	TerminateTask();					
 }
@@ -123,158 +134,13 @@ TASK(TaskMain){
 /*
 ###################################################################
 	Task
-	name: TaskBalance
+	name: TaskActuator
 	description:
 
 ###################################################################
 */
-TASK(TaskBalance)
+TASK(TaskActuator)
 {
-
-	if(init==0){
-		balance_init();							
-		nxt_motor_set_count(RIGHT_MOTOR,0);
-		nxt_motor_set_count(LEFT_MOTOR,0);
-		init =1;
-		
-
-		//sensor = (Sensor_t *)malloc(sizeof(Sensor_t));
-
-		
-		sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
-		sensor.gyro= ecrobot_get_gyro_sensor(GYRO_SENSOR);
-		sensor.touched = ecrobot_get_touch_sensor(TOUCH_SENSOR);
-		sensor.sonar = ecrobot_get_sonar_sensor(SONAR_SENSOR);
-		//sensor.distance = (S32)getDistance();
-		
-		sensor.prev_light_value = sensor.light;
-
-		balance_init();
-
-
-        receive_BT(statemachine);   //receiveing BT
-        
-        
-  
-	#ifdef DEBUG
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("events end");
-		display_update();
-		systick_wait_ms(1000);
-	#endif
-
-
-/////////////////////////////////////////////////////////////////////////////////
-#ifdef SEND_STATE
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("sending state");
-		display_update();
-
-			ecrobot_bt_data_logger(statemachine.num_of_states,1);
-	systick_wait_ms(50);
-			ecrobot_bt_data_logger(statemachine.num_of_events,2);
-			systick_wait_ms(50);
-		
-		
-		
-			for(i=0;i<num_of_events*num_of_states;i++){
-					
-					ecrobot_bt_data_logger((S8)(statemachine.matrix[i]),i);
-					systick_wait_ms(50);
-			}
-			for(i=0;i<num_of_states;i++){
-				ecrobot_bt_data_logger(statemachine.states[i].state_no,i);
-				systick_wait_ms(50);
-				ecrobot_bt_data_logger(statemachine.states[i].action_no,10+i);
-				systick_wait_ms(50);
-				ecrobot_bt_data_logger(statemachine.states[i].value0,20+i);
-				systick_wait_ms(50);		
-				ecrobot_bt_data_logger(statemachine.states[i].value1,30+i);
-				systick_wait_ms(50);
-				ecrobot_bt_data_logger(statemachine.states[i].value2,40+i);
-				systick_wait_ms(50);		
-				ecrobot_bt_data_logger(statemachine.states[i].value3,50+i);
-				systick_wait_ms(50);
-
-			}
-			for(i=0;i<num_of_events;i++){
-				ecrobot_bt_data_logger(events[i].event_no,31);
-				systick_wait_ms(50);
-			}
-
-//////////////////////////////////////////////////////////////////////////////
-#endif
-
-
-/*	
-		controller = (Controller_t *)malloc(sizeof(Controller_t));
-		if(controller ==NULL){
-			
-			display_clear(0);
-			display_goto_xy(0, 1);
-			display_string("malloc error controller:");
-			display_update();
-			systick_wait_ms(10000);
-		}
-*/
-/*		controller.speed = 0;
-		controller.forward_power=0;
-		controller.turn=0;
-		controller.balance_on=0;
-		controller.pid_on=0;
-		controller.wg_pid_on=0;
-		controller.tail_on=0;
-		controller.tail_ang=0;
-		controller.tail_run_speed=0;
-		//controller.gyro_offset=610;
-		controller.step_offset=10000;
-		controller.gray_offset = 10000;
-		controller.color_threshold = 660;
-		controller.P_gain=1.0;
-		controller.I_gain=1.0;
-		controller.D_gain=1.0;
-
-		sensor.light_min=1000;
-		sensor.light_max=0;
-		sensor.bottle_is_left=0;
-		sensor.bottle_is_right=0;
-*/		   
-	#ifdef DEBUG
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("controller end");
-		display_update();
-		systick_wait_ms(1000);
-	#endif
-
-		gyro_calibration();
-		calibration(&sensor.black,&sensor.white,&sensor.gray);
-		
-		init_nxt();
-
-/*		sensor.threshold_gray=sensor.gray;
-		controller.color_threshold = sensor.gray;
-		sensor.prev_light_value=controller.color_threshold;
-
-		for(int m=0 ; m < sensor.LIGHT_BUFFER_LENGTH ; m++){
-			sensor.light_buffer[m]=sensor.gray;
-		}
-		for(int m=0;m<sensor.GYRO_BUFFER_LENGTH;m++){
-			sensor.gyro_buffer[m] = controller.gyro_offset;
-		}
-*/
-
-	#ifdef DEBUG
-		display_clear(0);
-		display_goto_xy(0, 1);
-		display_string("init end");
-		display_update();
-		systick_wait_ms(1000);
-	#endif
-	}
-	
 
 	int before=0, standard=0;	// beforeAEAE?AﾂｧAac?AEAAeA竏羨?AAstandardAEoAeaAuR?AAAAeA竏羨
 	float integral=0;
@@ -1145,8 +1011,6 @@ void gyro_calibration(){
 //return the Left and Right motor power
 // from speed and turn for tail running
 //***************************************
-
-
 void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R){
 	if(_tail_run_speed!=0){
 
@@ -1177,42 +1041,76 @@ void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R)
 
 }
 
-void init_nxt(){
+/*
+***************************************************************
+	name: init_nxt
+	Description:
 
-		controller.speed = 0;
-		controller.forward_power=0;
-		controller.turn=0;
-		controller.balance_on=0;
-		controller.pid_on=0;
-		controller.wg_pid_on=0;
-		controller.tail_on=0;
-		controller.tail_ang=0;
-		controller.tail_run_speed=0;
+	Parameter: event_id
+		The IDs of events to happen during the run.
+	Return Value:
+
+***************************************************************
+*/
+void init_nxt()
+{
+	balance_init();
+	nxt_motor_set_count(RIGHT_MOTOR,0);
+	nxt_motor_set_count(LEFT_MOTOR,0);
+
+	sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
+	sensor.gyro= ecrobot_get_gyro_sensor(GYRO_SENSOR);
+	sensor.touched = ecrobot_get_touch_sensor(TOUCH_SENSOR);
+	sensor.sonar = ecrobot_get_sonar_sensor(SONAR_SENSOR);
+	//sensor.distance = (S32)getDistance();
+
+	sensor.prev_light_value = sensor.light;
+
+	balance_init();
+
+
+    //receive_BT(statemachine);   //receiveing BT
+
+
+	//gyro_calibration();
+	//calibration(&sensor.black,&sensor.white,&sensor.gray);
+
+	controller.speed = 0;
+	controller.forward_power=0;
+	controller.turn=0;
+	controller.balance_on=0;
+	controller.pid_on=0;
+	controller.wg_pid_on=0;
+	controller.tail_on=0;
+	controller.tail_ang=0;
+	controller.tail_run_speed=0;
 		//controller.gyro_offset=610;
-		controller.step_offset=10000;
-		controller.gray_offset = 10000;
-		controller.color_threshold = 660;
-		controller.P_gain=1.0;
-		controller.I_gain=1.0;
-		controller.D_gain=1.0;
-		controller.right_motor_rate=1.0;
-		controller.left_motor_rate=1.0;
+	controller.step_offset=10000;
+	controller.gray_offset = 10000;
+	controller.color_threshold = 660;
+	controller.P_gain=1.0;
+	controller.I_gain=1.0;
+	controller.D_gain=1.0;
+	controller.right_motor_rate=1.0;
+	controller.left_motor_rate=1.0;
 
-		sensor.light_min=1000;
-		sensor.light_max=0;
-		sensor.bottle_is_left=0;
-		sensor.bottle_is_right=0;
+	sensor.light_min=1000;
+	sensor.light_max=0;
+	sensor.bottle_is_left=0;
+	sensor.bottle_is_right=0;
 
-		sensor.threshold_gray=sensor.gray;
-		controller.color_threshold = sensor.gray;
-		sensor.prev_light_value=controller.color_threshold;
+	sensor.threshold_gray=sensor.gray;
+	controller.color_threshold = sensor.gray;
+	sensor.prev_light_value=controller.color_threshold;
 
-		for(int m=0 ; m < sensor.LIGHT_BUFFER_LENGTH ; m++){
-			sensor.light_buffer[m]=sensor.gray;
-		}
-		for(int m=0;m<sensor.GYRO_BUFFER_LENGTH;m++){
-			sensor.gyro_buffer[m] = controller.gyro_offset;
-		}
+	for(int m=0 ; m < sensor.LIGHT_BUFFER_LENGTH ; m++)
+	{
+		sensor.light_buffer[m]=sensor.gray;
+	}
+	for(int m=0;m<sensor.GYRO_BUFFER_LENGTH;m++)
+	{
+		sensor.gyro_buffer[m] = controller.gyro_offset;
+	}
 
 }
 
