@@ -3,12 +3,14 @@
 #include "ecrobot_interface.h"
 
 typedef struct tag_Controller_{
+
 	float speed;
 
 	byte pid_on;
+	byte wg_pid_on;
+
 	byte balance_on;
 	byte tail_on;
-	byte wg_pid_on;
 	
 	float forward_power;
 	float turn;

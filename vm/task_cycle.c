@@ -113,7 +113,9 @@ TASK(TaskMain)
 
 	switch(/*robot state variable*/)
 	{
-	case STOP:	 /* Stops and Initialize */
+	case START:	 /* Start State */
+		break;
+	case WAIT:	 /* Wait and Initialize */
 		break;
 	case BTCOMU: /* Comunication by Bluetooth */
 		receive_BT(statemachine);
@@ -122,7 +124,7 @@ TASK(TaskMain)
 		gyro_calibration();
 		calibration(&sensor.black,&sensor.white,&sensor.gray);
 		break;
-	case RUN:	 /* Challenge contest */
+	case ACTION: /* Challenge contest */
 		event_manager();
 		break;
 	}
@@ -145,19 +147,21 @@ TASK(TaskActuator)
 	int before=0, standard=0;	// beforeAEAE?AﾂｧAac?AEAAeA竏羨?AAstandardAEoAeaAuR?AAAAeA竏羨
 	float integral=0;
 
-	if(controller.pid_on==1){
+	if(controller.pid_on == 1)	// Linetrace border between black and white
+	{
 		sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
 		before = standard;
 		standard = sensor.light - sensor.gray;					// AAeA竏羨?CiAenAaAE
 		controller.integral += (standard - before)/2.0 * 0.004;	
 
-		//	controller.turn = 1 * standard *100 / (black-white) + 1 * controller.integral / (black-white) * 100 + 1 * (sensor.light-sensor.prev_light_value) / (black-white) * 100;	//EoaAouAAﾂｧERaAAAE
+		//controller.turn = 1 * standard *100 / (black-white) + 1 * controller.integral / (black-white) * 100 + 1 * (sensor.light-sensor.prev_light_value) / (black-white) * 100;	//EoaAouAAﾂｧERaAAAE
 
 		controller.turn = controller.P_gain * standard *100 / (sensor.black-sensor.white) + controller.I_gain * integral / (sensor.black-sensor.white) * 100 + controller.D_gain * (sensor.light-sensor.prev_light_value) / (sensor.black-sensor.white) * 100;	// EoaAouAAﾂｧERaAAAE
 		sensor.prev_light_value = sensor.light;		//1?AﾂｧAac?AEEoe?Ca?Ai?CiE窶�A\AE
 		controller.forward_power=controller.speed;
 	}
-	else if(controller.wg_pid_on==1){
+	else if(controller.wg_pid_on == 1)	// Linetrace border between gray and white
+	{
 		sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
 		before = standard;
 		standard = sensor.light - sensor.white_gray_threshold;
@@ -174,7 +178,7 @@ TASK(TaskActuator)
 	}
 
 	
-	if(controller.balance_on==1){
+	if(controller.balance_on == 1){
 		balance_control(					//?Ee?Ec?E??CﾎｼAPI?AAAeo?A?Aa竏ｫ?AAE
 			(float)controller.forward_power,		//AacEA?AEeAaaEAAAeﾎｩ窶ｰaﾂｧ(-100(Ae?EoaAouEuAAﾂｧs)?100(A竏堕ｶEoaAouEuAAﾂｧs))
 			(float)controller.turn,			//EoaAouAeﾎｩ窶ｰaﾂｧ(-100?100)
