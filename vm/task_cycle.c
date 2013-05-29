@@ -763,17 +763,17 @@ void StateMachine_action(State_t *state) {
 			controller.forward_power=0;
 			controller.tail_run_speed=1;
 			if(controller.balance_on==1){
-				controller.turn=state->value1;
+				controller.turn = state->value1;
 			}else{
-				controller.turn=-(state->value1);
+				controller.turn = -(state->value1);
 			}
 
-			if(state->value0<0){
-				controller.turn *=-1;
+			if(state->value0 < 0){
+				controller.turn *= -1;
 			}
-			eventStatus.circling_start_encoder_R=nxt_motor_get_count(RIGHT_MOTOR);
-			eventStatus.circling_target_angle_R=calc_angle2encoder(state->value0);
-			eventStatus.circling_on=1;
+			eventStatus.circling_start_encoder_R = nxt_motor_get_count(RIGHT_MOTOR);
+			eventStatus.circling_target_angle_R = calc_angle2encoder(state->value0);
+			eventStatus.circling_on = 1;
 			break;
 		//selecting logger
 		//@param log_type
