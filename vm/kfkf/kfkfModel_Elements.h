@@ -1,5 +1,15 @@
-#ifndef _STATEMACHINE_H_
-#define _STATEMACHINE_H_
+/*
+####################################################################################################
+	name: kfkfModel.h
+	Description: ??
+	---
+	update: 2013.06.13
+####################################################################################################
+*/
+
+
+#ifndef _KFKFMODEL_ELEMENTS_H_
+#define _KFKFMODEL_ELEMENTS_H_
 
 #include "kernel.h"
 #include "kernel_id.h"
