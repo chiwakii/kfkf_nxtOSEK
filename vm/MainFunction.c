@@ -723,7 +723,7 @@ void ControllerSet(State_t *state) {
 	switch(state->action_no) {
 		case 0://do nothing
 			controller.speed = 0;
-			controller.forward_power=0;//state->value0;
+			controller.forward=0;//state->value0;
 			controller.turn = 0;//state->value1;
 			controller.pid_on=0;
 			controller.wg_pid_on=0;
