@@ -16,9 +16,9 @@
 #include "ecrobot_interface.h"
 #include <stdlib.h>
 
-typedef struct tag_Event {
-	S16 event_no;
-} Event_t;
+//typedef struct tag_Event {
+	//S16 event_no;
+//} Event_t;
 
 typedef struct tag_State {
 	S16 state_no;
@@ -32,7 +32,7 @@ typedef struct tag_State {
 typedef struct tag_StateMachine {
 	S16 num_of_events;
 	S16 num_of_states;
-	S16 *matrix;
+	S16 *events;
 	State_t *states;
 	S16 current_state;
 } StateMachine_t;

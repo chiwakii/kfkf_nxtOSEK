@@ -1,3 +1,6 @@
+#ifndef _CONTOROLLER_H_
+#define _CONTOROLLER_H_
+
 #include "kernel.h"
 #include "kernel_id.h"
 #include "ecrobot_interface.h"
@@ -12,23 +15,33 @@ typedef struct tag_Controller_{
 	byte balance_on;
 	byte tail_on;
 	
-	float forward_power;
-	float turn;
+	S8 forward;
+	S8 turn;
 
-	float gyro_offset;
+	//gyro sensor offset
+	F32 gyro_offset;
+	U16 gyro_offset_base;
+
+	//light sensor
+	U32 light_gray;
+	U32 light_gray_base;
+	U32 light_white;
+	U32 light_black;
+
 	S16 gray_offset;
 	int color_threshold;
-	float P_gain;
-	float I_gain;
-	float D_gain;
-	float integral;
+	F32 P_gain;
+	F32 I_gain;
+	F32 D_gain;
+	F32 Tail_gain;
+
+	F32 integral;
 	
 	U16 step_offset;
-	U16 base_gyro_offset;
 	U32 tail_ang;
 	S16 tail_run_speed;
 	S8 tail_speed_offset;
-	float right_motor_rate;
-	float left_motor_rate;
 
 }Controller_t;
+
+#endif

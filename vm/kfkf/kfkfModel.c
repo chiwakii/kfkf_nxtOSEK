@@ -89,8 +89,6 @@ void receive_BT(/* StateMachine_t statemachine*/){
             }
             packet_no++;
         }
-        
-        
     }
 	
     
@@ -139,7 +137,7 @@ void receive_BT(/* StateMachine_t statemachine*/){
     //statemachine.num_of_events = num_of_events;
     //statemachine.num_of_states = num_of_states;
     statemachine.current_state = 0;
-    statemachine.matrix = matrix;
+    statemachine.events = matrix;
     statemachine.states = (State_t *)states;
 
 }
