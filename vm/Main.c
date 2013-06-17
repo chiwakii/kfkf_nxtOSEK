@@ -4,8 +4,9 @@
 #include "kernel_id.h"
 #include "ecrobot_interface.h"
 //
+#include "Common.h"
 #include "NXT_Config.h"
-//#include "kfkf/kfkfModel.h"
+#include "kfkf/kfkfModel.h"
 #include "Logger.h"
 #include "SensorManager.h"
 #include "Controller.h"
@@ -16,8 +17,6 @@
 ===============================================================================================
 */
 #define BLUETOOTH
-#define OFF 0
-#define ON 1
 
 /*
 ===============================================================================================
@@ -38,16 +37,17 @@ DeclareTask(TaskLogger);				/* Task to send logging data */
 //
 void InitNXT();
 //
-void EventSensor();
+State_t EventSensor();
 //
-void ControllerSet(State_t* state);
+void setController(const State_t state);
 
 
 void gyro_calibration();
 void calibration(int *black,int *white,int *gray);
-void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R);
-S16 calc_angle2encoder(S16 angle);
-S8 calc_variance(U16 *buf,int _len);
+//void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R);
+S16 calc_angle2encoder(S16 ang);
+//S8 calc_variance(U16 *buf,int _len);
+void tailstand();
 
 
 
@@ -58,14 +58,14 @@ S8 calc_variance(U16 *buf,int _len);
 */
 static U8 count = 0;
 static U32 sum = 0;
-static byte flag_calib = 0;;
+static boolean flag_calib = OFF;
 
 int i;
 int rest;
 int i_value = 0;
+
 ///////state machine//////////////////////
 
-//StateMachine_t statemachine;
 Sensor_t sensor;
 Controller_t controller;
 
@@ -75,8 +75,7 @@ Controller_t controller;
 ////////balance_control//////////////////////
 
 	S8 init=0;
-	S8 turn;		  	 			
-	S8 pwm_L, pwm_R;				
+	S8 turn;
 	
 //////sensor/////////////////////
 Sensor_t sensor;  //initialize later
@@ -137,88 +136,101 @@ TASK(TaskMain)
 
 	switch(/*robot state variable*/)
 	{
-	case START:	 /* Start State */
+	case START:	 /* Initialization */
+	    display_clear(0);
+	    display_goto_xy(0, 1);
+	    display_string("Robot Start");
+	    display_update();
+		InitNXT();
+		//to WAIT
 		break;
-	case WAIT:	 /* Wait and Initialize */
+	case WAIT:	 /* Wait */
+		if( sensor.touch == ON ) //to BTCOMM
 		break;
 	case BTCOMM: /* Communication by Bluetooth */
+		tailstand();
 		receive_BT();
+		//to GYROCALIB
 		break;
 	case GYROCALIB:	 /* Do calibration */
-		if(sensor.touched == 1) flag_calib = 1;
+		if( sensor.touch == ON ) flag_calib = 1;
 
-		if(flag_calib == 1)
+		if(flag_calib == ON)
 		{
 			count++;
-			sum = sensor.gyro;
+			sum += sensor.gyro;
 		}
 
 		if(count >= 100)
 		{
-			controller.gyro_offset = (F32)sum/count;
-			flag_calib = 0;
+			sensor.gyro_offset = (F32)sum/count;
+			flag_calib = OFF;
 			sum = 0;
 			count = 0;
 			//to GRAYCALIB
 		}
 		break;
+
 	case GRAYCALIB:
-		if(sensor.touched == 1) flag_calib = 1;
+		if( sensor.touch == ON ) flag_calib = 1;
 
 		if(flag_calib == 1)
 		{
 			count++;
-			sum = sensor.light;
+			sum += sensor.light;
 		}
 
 		if(count >= 100)
 		{
-			controller.light_gray = (F32)sum/count;
-			controller.light_gray_base = controller.light_gray;
-			flag_calib = 0;
+			sensor.target_gray = (F32)sum/count;
+			sensor.target_gray_base = controller.target_gray;
+			flag_calib = OFF;
 			sum = 0;
 			count = 0;
 			//to WHITECALIB
 		}
 		break;
+
 	case WHITECALIB:
-		if(sensor.touched == ON) flag_calib = ON;
+		if( sensor.touch == ON ) flag_calib = ON;
 
 		if(flag_calib == ON)
 		{
 			count++;
-			sum = sensor.light;
+			sum += sensor.light;
 		}
 
 		if(count >= 100)
 		{
-			controller.light_white = (F32)sum/count;
+			sensor.white = (F32)sum/count;
 			flag_calib = OFF;
 			sum = 0;
 			count = 0;
 			//to BLACKCALIB
 		}
-		break
-	case BLACKCALIB:
-		if(sensor.touched == ON) flag_calib = ON;
+		break;
 
-		if(flag_calib == ON)
+	case BLACKCALIB:
+		if( sensor.touch == ON ) flag_calib = ON;
+
+		if( flag_calib == ON )
 		{
 			count++;
-			sum = sensor.light;
+			sum += sensor.light;
 		}
 
 		if(count >= 100)
 		{
-			controller.light_black = (F32)sum/count;
+			sensor.black = (F32)sum/count;
 			flag_calib = OFF;
 			sum = 0;
 			count = 0;
 			//to ACTION
 		}
 		break;
+
 	case ACTION: /* Challenge contest */
-		event_manager();
+		setController( EventSensor() );
 		break;
 	}
 
@@ -236,81 +248,69 @@ TASK(TaskMain)
 */
 TASK(TaskActuator)
 {
+	S8 pwm_L = 0;
+	S8 pwm_R = 0;
+	S8 pwm_T = 0;
 
-	int before=0, standard=0;	// beforeAEAE?AﾂｧAac?AEAAeA竏羨?AAstandardAEoAeaAuR?AAAAeA竏羨
-	float integral=0;
-
-	if(controller.pid_on == ON)	// Linetrace border between black and white
+	if( controller.PIDmode != NO_MODE )
 	{
-		before = standard;
-		standard = sensor.light - sensor.gray;					// AAeA竏羨?CiAenAaAE
-		controller.integral += (standard - before)/2.0 * 0.004;	
+		controller.pre_dif = controller.dif;
 
-		controller.turn = controller.P_gain * standard *100 / (sensor.black-sensor.white)
-				+ controller.I_gain * integral / (sensor.black-sensor.white) * 100
-				+ controller.D_gain * (sensor.light - sensor.pre_light) / (sensor.black-sensor.white) * 100;	// EoaAouAAﾂｧERaAAAE
+		if( controller.PIDmode == WB_PID )
+		{
+			controller.dif = sensor.light - sensor.target_gray;
+		}
+		else if( controller.PIDmode == WG_PID )
+		{
+			controller.dif = sensor.light - sensor.white_gray_threshold;//?
+		}
 
-		sensor.prev_light_value = sensor.light;		//1?AﾂｧAac?AEEoe?Ca?Ai?CiE窶�A\AE
-		controller.forward = controller.speed;
-	}
-	else if(controller.wg_pid_on == ON)	// Linetrace border between gray and white
-	{
-		//sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
-		before = standard;
-		standard = sensor.light - sensor.white_gray_threshold;
-		controller.integral += (standard - before)/2.0 * 0.004;
+		controller.differential = controller.dif - controller.pre_dif;
+		controller.integral += (controller.dif + controller.pre_dif)/2.0 * 0.004;
 
-		controller.turn = controller.P_gain * standard *100 / (sensor.calib_gray-sensor.white)
-				+ controller.I_gain * integral / (sensor.calib_gray-sensor.white) * 100
-				+ controller.D_gain * (sensor.light-sensor.prev_light_value) / (sensor.calib_gray-sensor.white) * 100;	// 譌句屓蛟､險�E
-
-		sensor.prev_light_value = sensor.light;
-		controller.forward = controller.speed;
+		controller.turn = controller.P_gain * controller.dif
+				+ controller.I_gain * controller.integral
+				+ controller.D_gain * controller.differential;
 	}
 
+	controller.tail_pre_dif = controller.tail_dif;
+	controller.tail_dif = controller.target_tail - sensor.count_tail;
+
+	//pwm_T = (U8)( controller.TP_gain * controller.tail_dif + controller.TD_gain * (controller.tail_pre_dif - controller.tail_dif) );
+	pwm_T = (U8)( controller.TP_gain * controller.tail_dif );
+
+	if(pwm_T > 100)
+	{
+		pwm_T = 100;
+	}
+	else if(pwm_T < -100)
+	{
+		pwm_T = -100;
+	}
 	
-	if(controller.balance_on == ON)
+	if( controller.standmode == BALANCE )
 	{
 		balance_control(
 			(F32)controller.forward,
 			(F32)controller.turn,
 			(F32)sensor.gyro,
-			(F32)controller.gyro_offset,
+			(F32)sensor.gyro_offset,
 			(F32)sensor.count_left,
 			(F32)sensor.count_right,
 			(F32)sensor.battery,
 			&pwm_L,
 			&pwm_R
 		);
-
-		//
-		nxt_motor_set_speed(LEFT_MOTOR, (S8)(pwm_L), 1);
-		nxt_motor_set_speed(RIGHT_MOTOR, (S8)(pwm_R), 1);
 	
 	}
-	else if(controller.tail_on == ON)
+	else if(controller.standmode == TAIL)
 	{
-		S8 tail_speed;
-
-		//tail_speed = (U8)(10.0/9.0*(controller.tail_ang - sensor.count_tail) + controller.tail_speed_offset);
-		tail_speed = (U8)(controller.Tail_gain*(controller.tail_ang - sensor.count_tail));
-
-		if(tail_speed > 100)
-		{
-			tail_speed = 100;
-		}
-		else if(tail_speed < -100)
-		{
-			tail_speed = -100;
-		}
 		
-		nxt_motor_set_speed(TAIL_MOTOR,tail_speed,1);
-
 		balance_control(
 			(F32)controller.forward,
 			(F32)controller.turn,
-			(F32)controller.gyro_offset,
-			(F32)controller.gyro_offset,
+			(F32)sensor.gyro_offset,
+			(F32)sensor.gyro_offset,
 			(F32)sensor.count_left,
 			(F32)sensor.count_right,
 			(F32)sensor.battery,
@@ -318,9 +318,11 @@ TASK(TaskActuator)
 			&pwm_R
 		);
 
-		nxt_motor_set_speed(RIGHT_MOTOR,(S8)(pwm_R,1);
-		nxt_motor_set_speed(LEFT_MOTOR,(S8)(pwm_L,1);
 	}
+
+	nxt_motor_set_speed( TAIL_MOTOR, pwm_T, 1 );
+	nxt_motor_set_speed( LEFT_MOTOR, pwm_L, 1 );
+	nxt_motor_set_speed( RIGHT_MOTOR, pwm_R, 1 );
 
 	TerminateTask();
 }
@@ -334,7 +336,12 @@ TASK(TaskActuator)
 ===============================================================================================
 */
 
-int g_SonarCnt = 0;
+#define LIGHT_BUFFER_LENGTH_MAX 250
+
+static U8 g_SonarCnt = 0;
+static U8 g_LightCnt = 0;
+static U16 lightbuffer[LIGHT_BUFFER_LENGTH_MAX] = {0};
+static U32 lightave = 0;
 
 TASK(TaskSensor)
 {
@@ -345,8 +352,17 @@ TASK(TaskSensor)
 	//	Light Data
 	//--------------------------------
 	// Update Data of Light Sensor
-	sensor.pre_light = sensor.light;
 	sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
+
+	lightbuffer[g_LightCnt] = sensor.light;
+	g_LightCnt++;
+	if( g_LightCnt >= LIGHT_BUFFER_LENGTH_MAX ) g_LightCnt = 0;
+
+	for(i=0;i >= LIGHT_BUFFER_LENGTH_MAX;i++)
+	{
+		lightave += lightbuffer[i];
+	}
+	sensor.light_ave = (U16)(lightave / LIGHT_BUFFER_LENGTH_MAX);
 
 	//--------------------------------
 	//	Gyro Data
@@ -360,7 +376,7 @@ TASK(TaskSensor)
 	if(g_SonarCnt > 10)
 	{
 		// Update Data of Sonar Sensor
-		sensor.sonar = ecrobot_get_sonar_sensor(SONAR_SENSOR);
+		sensor.distance = ecrobot_get_sonar_sensor(SONAR_SENSOR);
 		g_SonarCnt = 0;
 	}
 	else
@@ -372,7 +388,7 @@ TASK(TaskSensor)
 	//	Touch Data
 	//--------------------------------
 	// Update Data of Touch Sensor
-	sensor.touched = ecrobot_get_touch_sensor(TOUCH_SENSOR);
+	sensor.touch = ecrobot_get_touch_sensor(TOUCH_SENSOR);
 
 
 	//--------------------------------
@@ -392,21 +408,21 @@ TASK(TaskSensor)
 	//==========================================
 	
 	//calculate light valiance
-	sensor.light_V = 1.0*calc_variance(sensor.light_buffer,V_LIGHT_BUFFER_LENGTH);
+	//sensor.light_V = 1.0*calc_variance(sensor.light_buffer,V_LIGHT_BUFFER_LENGTH);
 	
 	//calculate gyro valiance
-	sensor.gyro_V = 1.0*calc_variance(sensor.gyro_buffer,V_GYRO_BUFFER_LENGTH);
+	//sensor.gyro_V = 1.0*calc_variance(sensor.gyro_buffer,V_GYRO_BUFFER_LENGTH);
 
 
 	//Bottle Detecting
 	if(eventStatus.bottle_right_length > 0){
-		if(sensor.sonar < eventStatus.bottle_right_length){
-			sensor.bottle_is_right=1;
+		if(sensor.distance < eventStatus.bottle_right_length){
+			sensor.bottle_is_right = ON;
 		}
 	}
 	if(eventStatus.bottle_left_length > 0){
-		if(sensor.sonar < eventStatus.bottle_left_length){
-			sensor.bottle_is_left=1;
+		if(sensor.distance < eventStatus.bottle_left_length){
+			sensor.bottle_is_left = ON;
 		}
 	}
 
@@ -438,9 +454,6 @@ TASK(TaskLogger){
 				break;
 			case LOG_TARGET_ANGLE:
 				ecrobot_bt_data_logger((S8)(_ang/100),(S8)(_ang%100));
-				break;
-			case LOG_LIGHT_MIN:
-				//ecrobot_bt_data_logger((S8)(sensor.light_min%100),(S8)(sensor.light_min/100));
 				break;
 			case LOG_MOTOR_COUNT:
 				ecrobot_bt_data_logger((S8)(rest_motor_count%100),(S8)(rest_motor_count/100));
@@ -480,53 +493,72 @@ TASK(TaskLogger){
 */
 void InitNXT()
 {
+	//==========================================
+	//	initialize motor & balancer
+	//==========================================
 	balance_init();
 	nxt_motor_set_count(RIGHT_MOTOR,0);
 	nxt_motor_set_count(LEFT_MOTOR,0);
+	nxt_motor_set_count(TAIL_MOTOR,0);
 
-	sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
-	sensor.gyro = ecrobot_get_gyro_sensor(GYRO_SENSOR);
-	sensor.touched = ecrobot_get_touch_sensor(TOUCH_SENSOR);
-	sensor.sonar = ecrobot_get_sonar_sensor(SONAR_SENSOR);
-	//sensor.distance = (S32)getDistance();
+	//==========================================
+	//	initialize sensor variables
+	//==========================================
+	sensor.light = 600;
+	//sensor.pre_light = 600;
+	sensor.black = 800;
+	sensor.white = 400;
+	sensor.target_gray = 600;
+	sensor.target_gray_base = sensor.target_gray;
+	//sensor.threshold_gray = sensor.target_gray;
 
-	sensor.pre_light = sensor.light;
+	sensor.gyro = 600;
+	sensor.gyro_offset = 610;
+	sensor.gyro_offset_base = sensor.gyro_offset;
 
-	controller.speed = 0;
+	sensor.touch = OFF;
+	sensor.distance = 255;
+	sensor.count_left = 0;
+	sensor.count_right = 0;
+	sensor.battery = 600;
+
+	sensor.bottle_is_left = OFF;
+	sensor.bottle_is_right = OFF;
+
+
+	//==========================================
+	//	initialize controller variables
+	//==========================================
+	//controller.speed = 0;
 	controller.forward = 0;
 	controller.turn = 0;
-	controller.balance_on = 0;
-	controller.pid_on = 0;
-	controller.wg_pid_on = 0;
-	controller.tail_on = 0;
-	controller.tail_ang = 0;
-	controller.tail_run_speed = 0;
-		//controller.gyro_offset=610;
+	controller.standmode = NO_MODE;
+	controller.PIDmode = NO_MODE;
+	controller.target_tail = 0;
+	//controller.tail_run_speed = 0;
 	controller.step_offset = 10000;
 	controller.gray_offset = 10000;
 	controller.color_threshold = 660;
-	controller.P_gain=1.0;
-	controller.I_gain=1.0;
-	controller.D_gain=1.0;
+	controller.P_gain = 1.0;
+	controller.I_gain = 0.0;
+	controller.D_gain = 0.0;
 
-	sensor.light_min=1000;
-	sensor.light_max=0;
-	sensor.bottle_is_left=0;
-	sensor.bottle_is_right=0;
+	controller.TP_gain = 0.5;
+	controller.TD_gain = 1.0;
 
-	sensor.threshold_gray = sensor.gray;
-	controller.color_threshold = sensor.gray;
-	sensor.prev_light_value=controller.color_threshold;
+	controller.color_threshold = sensor.target_gray;
 
+	sensor.prev_light_value = controller.color_threshold;
+/*
 	for(int m=0 ; m < sensor.LIGHT_BUFFER_LENGTH ; m++)
 	{
-		sensor.light_buffer[m]=sensor.gray;
+		sensor.light_buffer[m]=sensor.target_gray;
 	}
 	for(int m=0;m<sensor.GYRO_BUFFER_LENGTH;m++)
 	{
 		sensor.gyro_buffer[m] = controller.gyro_offset;
 	}
-
+*/
 }
 
 /*
@@ -556,137 +588,167 @@ void InitNXT()
 	update: 2013.06.13
 ===============================================================================================
 */
-void EventSensor(){
-	display_clear(0);
-	display_goto_xy(0, 1);
-	display_string("LIGHT=");
-	display_int(ecrobot_get_light_sensor(LIGHT_SENSOR), 4);
-	display_goto_xy(0, 2);
-	display_string("S=");
-	display_int(get_CurrentState(), 4);
-	display_update();
+State_t EventSensor(){
+
+	State_t tmp;
+
+	//--------------------------------
+	//	Event:auto
+	//--------------------------------
+	tmp = setNextState(AUTO);
 
 
-	sendevent(0); //always send event0
-
-
-	if(sensor.touched == ON && eventStatus.touch_status != ON)
+	//--------------------------------
+	//	Event:touch
+	//--------------------------------
+	if(sensor.touch == ON && eventStatus.touch_status == OFF)
 	{
-		//Touch Event!!
-		sendevent(1);
+		tmp = setNextState(TOUCH);
 		eventStatus.touch_status = ON;
 	}
-	else if(sensor.touched == OFF && eventStatus.touch_status != OFF)
+	else if(sensor.touch == OFF && eventStatus.touch_status == ON)
 	{
 		eventStatus.touch_status = OFF;
 	}
 
-	if(sensor.light > sensor.black-50 && eventStatus.light_status != LIGHT_STATUS_BLACK)
+	//==========================================
+	//	black & white
+	//==========================================
+	if(sensor.light > (sensor.black - 50) && eventStatus.light_status != LIGHT_STATUS_BLACK)
 	{
-		//Black Event!!
-		sendevent(3);
+		//--------------------------------
+		//	Event:black
+		//--------------------------------
+		tmp = setNextState(BLACK);
 		eventStatus.light_status = LIGHT_STATUS_BLACK;
 	}
-	else if(sensor.light < sensor.white+50 && eventStatus.light_status != LIGHT_STATUS_WHITE)
+	else if(sensor.light < (sensor.white + 50) && eventStatus.light_status != LIGHT_STATUS_WHITE)
 	{
-		//White Event!!
-		sendevent(2);
+		//--------------------------------
+		//	Event:white
+		//--------------------------------
+		tmp = setNextState(WHITE);
 		eventStatus.light_status = LIGHT_STATUS_WHITE;
 	}
-
-	if( sensor.light-sensor.gray > controller.gray_offset ){
-		sendevent(4);
+	else
+	{
+		eventStatus.light_status = LIGHT_STATUS_GRAY;
 	}
 
-	//step identify
-	U16 sensor_gyro_ave=0;
-	long gyro_ave=0;
-	for(int m=0;m<sensor.GYRO_BUFFER_LENGTH;m++){
-		gyro_ave+=sensor.gyro_buffer[m];
+	//--------------------------------
+	//	Event:gray marker
+	//--------------------------------
+	//if( sensor.light_ave > controller.gray_offset ){
+	if( controller.gray_offset - 10 < sensor.light_ave && sensor.light_ave < controller.gray_offset + 10  )
+	{
+		tmp = setNextState(GRAY_MARKER);
+		controller.PIDmode = WG_PID;
 	}
-	sensor_gyro_ave = gyro_ave/sensor.GYRO_BUFFER_LENGTH;
-	if( abs(sensor.gyro - sensor_gyro_ave) > controller.step_offset	){
-		sendevent(5);
-	}
-
-   	if(sensor.sonar < sensor.sonar_value ){
-		sendevent(8);
-	}
-	if(systick_get_ms()-eventStatus.start_timer>eventStatus.limit_time && eventStatus.timer_flag==TIMER_PROCESSING){
-		sendevent(9);
-		eventStatus.timer_flag=0;
-	}
-	int motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
-	if(eventStatus.motor_count != 0 && abs(motor_count - eventStatus.start_motor_count) > abs(eventStatus.motor_count)) {
-	sendevent(10);
-		eventStatus.motor_count = 0;
-
+	else
+	{
+		controller.PIDmode = WB_PID;
 	}
 
-
-   //bt_start
-	if(eventStatus.started != STARTED){
-		ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
-		if(bt_receive_buf[1]==254 ){
-			sendevent(11);
-			eventStatus.started = STARTED;
-		}
+	//--------------------------------
+	//	Event:step
+	//--------------------------------
+	if( abs(sensor.gyro - sensor.gyro_offset) > controller.step_offset	)
+	{
+		tmp = setNextState(STEP);
 	}
 
-	//finshed_turn_still
-	if(eventStatus.circling_on==1 && abs(nxt_motor_get_count(RIGHT_MOTOR)-eventStatus.circling_start_encoder_R) >abs(eventStatus.circling_target_angle_R)){
-		sendevent(12);
-		eventStatus.circling_on=0;
+	//--------------------------------
+	//	Event:sonar
+	//--------------------------------
+   	if(sensor.distance < eventStatus.distance )
+   	{
+   		tmp = setNextState(SONAR);
 	}
 
-	/////////////////////
-	//you can use sendevent(13),sendevent(14)	for some events
-	//////////////////////
-
-	if(sensor.gyro_V>100){
-
-
+	//--------------------------------
+	//	Event:timer
+	//--------------------------------
+	if( (systick_get_ms() - eventStatus.start_time) > eventStatus.target_time && eventStatus.timer_flag == ON)
+	{
+		tmp = setNextState(TIMER);
+		eventStatus.target_time = 0;
+		eventStatus.start_time = 0;
+		eventStatus.timer_flag = OFF;
 	}
 
-	if(eventStatus.bottle_judge!=0){
+	//--------------------------------
+	//	Event:motor count
+	//--------------------------------
+	int motor_count = (sensor.count_left + sensor.count_right) / 2;
+	//int motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
+	if(abs(motor_count - eventStatus.start_motor_count) > abs(eventStatus.target_motor_count) && eventStatus.motor_counter_flag == ON )
+	{
+		tmp = setNextState(MOTOR_COUNT);
+		eventStatus.target_motor_count = 0;
+		eventStatus.start_motor_count = 0;
+		eventStatus.motor_counter_flag = OFF;
+	}
+
+	//--------------------------------
+	//	Event:bluetooth start
+	//--------------------------------
+	boolean bts = BluetoothStart();
+	if(eventStatus.BTstart == OFF && bts == ON)
+	{
+		tmp = setNextState(BT_START);
+		eventStatus.BTstart = ON;
+	}
+	else if(eventStatus.BTstart == ON && bts == OFF)
+	{
+		eventStatus.BTstart = OFF;
+	}
+
+	//--------------------------------
+	//	Event:pivot turn
+	//--------------------------------
+	if( eventStatus.pivot_turn_flag == ON && abs(sensor.count_right - eventStatus.start_pivot_turn_encoder_R) > eventStatus.target_pivot_turn_angle_R )
+	{
+		tmp = setNextState(PIVOT_TURN_END);
+		eventStatus.pivot_turn_flag = OFF;
+	}
+
+
+	//==========================================
+	//	drift turn
+	//==========================================
+	if(eventStatus.bottle_judge == ON)
+	{
 		//sendevent turn left or right
-		if(sensor.bottle_is_right!=0 && sensor.bottle_is_left!=0){
-			//////
-		}else if(sensor.bottle_is_right==0 && sensor.bottle_is_left==0){
 
-		}else if(sensor.bottle_is_right!=0){
-			sendevent(14);
-		}else if(sensor.bottle_is_left!=0){
-			sendevent(13);
+		if(sensor.bottle_is_right == ON && sensor.bottle_is_left == ON)
+		{
+
+		}
+		else if(sensor.bottle_is_right == ON && sensor.bottle_is_left == OFF)
+		{
+			//--------------------------------
+			//	Event:bottle is right
+			//--------------------------------
+			tmp = setNextState(BOTTLE_RIGHT);
+		}
+		else if(sensor.bottle_is_right == OFF && sensor.bottle_is_left == ON)
+		{
+			//--------------------------------
+			//	Event:bottle is left
+			//--------------------------------
+			tmp = setNextState(BOTTLE_LEFT);
 		}
 
-
-
-		eventStatus.bottle_judge=1;
+		eventStatus.bottle_judge = ON;
 	}
 
-
-	if(eventStatus.num_to_loop>0){
-		if(eventStatus.loop_count>eventStatus.num_to_loop){
-			eventStatus.loop_count=0;
-			eventStatus.num_to_loop=0;
-			sendevent(15);
-
-		}else{
-			sendevent(16);
-		}
-	}
-
-
-
-
+	return tmp;
 }
-
 
 
 /*
 ===============================================================================================
-	name: ControllerSet
+	name: serController
 	Description: ??
 		Action
 		ID description
@@ -719,244 +781,221 @@ void EventSensor(){
 	update: 2013.06.13
 ===============================================================================================
 */
-void ControllerSet(State_t *state) {
-	switch(state->action_no) {
-		case 0://do nothing
-			controller.speed = 0;
-			controller.forward=0;//state->value0;
-			controller.turn = 0;//state->value1;
-			controller.pid_on=0;
-			controller.wg_pid_on=0;
-			controller.balance_on=1;
-			controller.tail_on=0;
+void serController(const State_t state)
+{
+	switch(state->action_no)
+	{
+		case NOT_TRANSITION:
 			break;
-		case 1://stop
-			controller.speed = 0;
-			controller.forward_power=0;//state->value0;
 
-			nxt_motor_set_speed(TAIL_MOTOR,0,1);
-			controller.pid_on=1;
-			controller.wg_pid_on=0;
-			controller.tail_on=0;
-
-			if(controller.balance_on==0){
-				controller.balance_on=1;
-				balance_init();
-				nxt_motor_set_count(LEFT_MOTOR,0);
-				nxt_motor_set_count(RIGHT_MOTOR,0);
-
-			}
-
-
+		case DO_NOTHING://do nothing
+			//controller.speed = 0;
+			controller.forward = 0;
+			controller.turn = 0;
+			//controller.PIDmode = NO_MODE;
+			//controller.standmode = BALANCE;
 			break;
+
+		case BALANCE_STOP://stop
+			//controller.speed = 0;
+			controller.forward = 0;
+			controller.turn = 0;
+
+			//nxt_motor_set_speed(TAIL_MOTOR,0,1);
+			controller.PIDmode = WB_PID;
+			controller.standmode = BALANCE;
+			//balance_init();
+			//nxt_motor_set_count(LEFT_MOTOR,0);
+			//nxt_motor_set_count(RIGHT_MOTOR,0);
+			break;
+
 		// linetrace
-		//@param speed:=value0
+		//@param foward:=value0
 		//@param gyro_offset:=value1
-		case 2:
-			controller.speed = state->value0;//state->value0;
-			controller.gyro_offset = controller.base_gyro_offset + state->value1;
+		case BALANCE_LINETRACE:
+			//controller.speed = state->value0;
+			controller.forward = state->value0;
+			sensor.gyro_offset = sensor.gyro_offset_base + state->value1;
 
-			controller.pid_on = 1;
+			controller.PIDmode = WB_PID;
+			controller.standmode = BALANCE;
 
-			if(controller.balance_on == 0){
-				controller.balance_on = 1;
-				balance_init();
-				nxt_motor_set_count(LEFT_MOTOR,0);
-				nxt_motor_set_count(RIGHT_MOTOR,0);
 
-			}
-
-			sensor.gray = sensor.threshold_gray;
-			nxt_motor_set_speed(TAIL_MOTOR,0,1);
+			//sensor.target_gray = sensor.threshold_gray;
+			//nxt_motor_set_speed(TAIL_MOTOR,0,1);
 
 			break;
-		//go up the steps
-		//@param gyro-offset:=value0
-		//need implementation
-		case 3:
-			controller.gyro_offset = controller.base_gyro_offset + state->value0;
 
-			controller.pid_on = 0;
-			controller.balance_on=1;
-			break;
 		//change the gray threshold
 		//@param new threshold:=value0
-		case 4:
-//			controller.color_threshold=state->value0;
-//			sensor.gray=state->value0;
-			sensor.gray = sensor.calib_gray;
+		case CHANGE_GRAY:
+			//controller.color_threshold=state->value0;
+			//sensor.gray=state->value0;
+			//sensor.gray = sensor.calib_gray;
+			sensor.target_gray = sensor.target_gray_base + state->value0;
 
-			controller.pid_on = 0;
-			controller.speed = 0;
-			controller.forward_power = 0;
-			controller.turn = 0;
+			//controller.PIDmode = WB_PID;
+			//controller.speed = 0;
+			//controller.forward_power = 0;
+			//controller.turn = 0;
 			break;
+
 		//run with no linetrace without balance
-		//@param tail_ang:=value0
+		//@param target_tail:=value0
 		//@param tail_run_speed :=value1
 		//@param turn :=value2
-		case 5:
-			controller.tail_ang = state->value0;
-			controller.tail_run_speed = state->value1;
+		case TAIL_RUN_FREEDOM:
+			controller.target_tail = state->value0;
+			//controller.tail_run_speed = state->value1;
+			controller.forward = state->value1;
 			controller.turn = state->value2;
-			controller.tail_speed_offset = state->value3;
+			controller.TP_gain = state->value3;
 
-			controller.pid_on = 0;
-			controller.wg_pid_on = 0;
-			controller.balance_on = 0;
-			controller.tail_on = 1;
+			controller.PIDmode = NO_MODE;
+			controller.standmode = TAIL;
 			break;
 
-		//down the tail
-		case 6:
-
-			nxt_motor_set_speed(TAIL_MOTOR,15,1);
-			break;
-		//
-		case 7:
-			controller.gyro_offset = state->value0;
-			controller.pid_on=0;
-			break;
 		//set timer
 		//@param limit_timer:=value0 i.e. 20 = 2.0sec
-		case 8:
-			eventStatus.timer_flag = TIMER_PROCESSING;
-			eventStatus.start_timer = systick_get_ms();
-			eventStatus.limit_time = state->value0 *100;
+		case TIMER_SET:
+			eventStatus.timer_flag = ON;
+			eventStatus.start_time = systick_get_ms();
+			eventStatus.target_time = state->value0 * 100;
 
 			break;
 		//set motor count
-		case 9:
-			eventStatus.start_motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
-			eventStatus.motor_count = state->value0;
+		case MOTOR_SET:
+			//eventStatus.start_motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
+			eventStatus.start_motor_count = (sensor.count_left + sensor.count_right) / 2;
+			eventStatus.target_motor_count = state->value0;
 
-
-			//turn();	//balancer
 			break;
+
 		//set PID
 		//@param P_gain:=value0/100
 		//@param I_gain:=value1/100
 		//@param D_gain:=value2/100
-		case 10:
+		case PID_SET:
 
-			controller.P_gain = (float)state->value0 / 100;
-			controller.I_gain = (float)state->value1 / 100;
-			controller.D_gain = (float)state->value2 / 100;
-
+			controller.P_gain = (F32)state->value0 / 100;
+			controller.I_gain = (F32)state->value1 / 100;
+			controller.D_gain = (F32)state->value2 / 100;
 
 			break;
 
-		//NOT USED
-		case 11:
-			controller.forward_power=state->value0;
-			controller.turn = state->value1;
-
-			controller.pid_on=0;
-			break;
 		//set gyro offset for steps
 		//@param step_offset := value0
-		case 12:
-			controller.step_offset=state->value0;
-			sensor.GYRO_BUFFER_LENGTH=state->value1;
+		case STEP_OFFSET_SET:
+			controller.step_offset = state->value0;
+			//sensor.GYRO_BUFFER_LENGTH = state->value1;
 			break;
+
 		//up the tail
-		case 13:
-			nxt_motor_set_speed(TAIL_MOTOR,-15,1);
+		case RAISE_TAIL:
+			controller.target_tail = 0;
+			//nxt_motor_set_speed(TAIL_MOTOR,-15,1);
 			break;
+
 		// tail run
 		//@param angle
 		//@param speed
- 		case 14:
-			controller.tail_on=1;
-			controller.pid_on=1;
-			controller.balance_on=0;
-			controller.tail_ang=state->value0;
-			controller.tail_run_speed=state->value1;
-			controller.tail_speed_offset=state->value2;
+ 		case TAIL_LINETRACE:
+			controller.PIDmode = WB_PID;
+			controller.standmode = TAIL;
+			controller.target_tail = state->value0;
+			//controller.tail_run_speed = state->value1;
+			controller.forward = state->value1;
+			controller.TP_gain = state->value2;
 			break;
+
 		//circling
 		//@param angle to turn
-		case 15:
+		case PIVOT_TURN:
 			//controller.tail_on=1;
 			//controller.balance_on=0;
-			controller.pid_on=0;
-			controller.forward_power=0;
-			controller.tail_run_speed=1;
-			if(controller.balance_on==1){
+			controller.PIDmode = NO_MODE;
+			controller.forward = 0;
+			//controller.tail_run_speed=1;
+			/*if(controller.balance_flag == ON)
+			{
 				controller.turn = state->value1;
-			}else{
+			}
+			else
+			{
+				controller.turn = -(state->value1);
+			}*/
+
+			if( state->value0 > 0 )
+			{
+				controller.turn = state->value1;
+			}
+			else
+			{
 				controller.turn = -(state->value1);
 			}
 
-			if(state->value0 < 0){
+			/*if(state->value0 < 0){
 				controller.turn *= -1;
-			}
-			eventStatus.circling_start_encoder_R = nxt_motor_get_count(RIGHT_MOTOR);
-			eventStatus.circling_target_angle_R = calc_angle2encoder(state->value0);
-			eventStatus.circling_on = 1;
+			}*/
+			eventStatus.start_pivot_turn_encoder_R = sensor.count_right;
+			eventStatus.target_pivot_turn_angle_R = calc_angle2encoder(state->value0);
+			eventStatus.pivot_turn_flag = ON;
 			break;
+
 		//selecting logger
 		//@param log_type
-		case 16:
+		case SELECT_LOGTYPE:
 			logger.type = state->value0;
 			break;
+
 		//set the gray_market offset
 		//@param gray_offset
-		case 17:
-			controller.gray_offset=state->value0;
-			sensor.LIGHT_BUFFER_LENGTH=state->value1;
+		case GRAY_MARKER_OFFSET:
+			controller.gray_offset = state->value0;
+			//sensor.LIGHT_BUFFER_LENGTH = state->value1;
 
 			break;
+
 		//free balance
-		case 18:
-			controller.tail_on=0;
-			controller.pid_on=0;
-			controller.wg_pid_on=0;
+		case BALANCE_RUN_FREEDOM:
+			controller.PIDmode = NO_MODE;
+			controller.standmode = BALANCE;
 
-			if(controller.balance_on==0){
-				controller.balance_on=1;
-				nxt_motor_set_count(LEFT_MOTOR,0);
-				nxt_motor_set_count(RIGHT_MOTOR,0);
-				balance_init();
+			controller.forward = state->value0;
+			controller.turn = state->value1;
+			sensor.gyro_offset = sensor.gyro_offset_base + state->value2;
 
-			}
-			controller.forward_power=state->value0;
-			controller.turn=state->value1;
-			controller.gyro_offset = controller.base_gyro_offset + state->value2;
+			//nxt_motor_set_speed(TAIL_MOTOR,0,1);
 
-			nxt_motor_set_speed(TAIL_MOTOR,0,1);
-
-			break;
-
-		//white_gray_linetrace(use tail)
-		case 19:
-			controller.tail_on=1;
-			controller.wg_pid_on=1;
-			controller.balance_on=0;
-			controller.tail_ang=state->value0;
-			controller.tail_run_speed=state->value1;
-			controller.tail_speed_offset=state->value2;
 			break;
 
 		//set_sonar_sensor
-		case 20:
-			sensor.sonar_value=state->value0;
+		case SONAR_SET:
+			eventStatus.target_distance = state->value0;
 			break;
 
-		case 21:
-			eventStatus.bottle_right_length=state->value0;
+		case SERACH_BOTTLE_RIGHT:
+			controller.forward = 0;
+
+			eventStatus.bottle_right_length = state->value0;
+			eventStatus.bottle_right_flag = ON;
+			break;
+
+		case SEARCH_BOTTLE_LEFT:
+			controller.forward = 0;
+
+			eventStatus.bottle_left_length = state->value0;
+			eventStatus.bottle_left_flag = ON;
 
 			break;
-		case 22:
-			eventStatus.bottle_left_length=state->value0;
 
+		case SEARCH_BOTTLE_END:
+			eventStatus.bottle_right_length = 0;
+			eventStatus.bottle_left_length = 0;
 			break;
-		case 23:
-			eventStatus.bottle_right_length=0;
-			eventStatus.bottle_left_length=0;
-			break;
-		case 24:
-			eventStatus.bottle_judge=1;
+
+		case SEARCH_BOTTLE_JUDGE:
+			eventStatus.bottle_judge = ON;
 			break;
 	}
 }
@@ -966,6 +1005,7 @@ void ControllerSet(State_t *state) {
 //return the Left and Right motor power
 // from speed and turn for tail running
 //***************************************
+/*
 void tail_run_turn2pwm(S16 tail_run_speed ,float turn ,S8 *_pwm_L, S8 *_pwm_R)
 {
 	if(tail_run_speed != 0)
@@ -1001,21 +1041,22 @@ void tail_run_turn2pwm(S16 tail_run_speed ,float turn ,S8 *_pwm_L, S8 *_pwm_R)
 
 }
 
-//**********************
-//calculate the motor encoder value
-//from the angle for cicling
-//**********************
+/*
+===============================================================================================
+	name: calc_angle2encoder
+	Description: ??
+ 	---
+	update: 2013.06.17
+===============================================================================================
+*/
+S16 calc_angle2encoder(S16 ang){
+	S16 ret = (S16)((F32)ang*16.3/8.1);
+	if(ret < 0) ret *= -1;
 
-S16 calc_angle2encoder(S16 _ang){
-	S16 ret=((float)_ang*16.3/8.1);
-	if(ret<0){ret*=-1;}
 	return ret;
-
-
 }
 
 /*
-
 ***************************************************************
 	name:calc_variance
 	description:
@@ -1058,3 +1099,14 @@ S8 calc_variance(U16 *buf,int _len){
 }
 */
 
+/*
+===============================================================================================
+	name: tailstand
+	Description: ??
+ 	---
+	update: 2013.06.17
+===============================================================================================
+*/
+void tailstand(){
+	controller.target_tail = 90;
+}

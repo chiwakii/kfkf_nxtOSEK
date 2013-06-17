@@ -13,14 +13,13 @@ USER_LIB = nxtway_gs_balancer
 
 # User applicaion source
 TARGET_SOURCES = \
-	task_cycle.c \
-	./statics/balancer_param.c \
-	./statics/StateMachine.c \
-	./statics/kfkf_bluetooth.c
+	Main.c \
+	balancer_param.c \
+	./statics/kfkfModel.c
 	
 
 # OSEK OIL file
-TOPPERS_OSEK_OIL_SOURCE = ./task_cycle.oil
+TOPPERS_OSEK_OIL_SOURCE = task_cycle.oil
 
 # Don't modify below part
 O_PATH ?= build

@@ -7,9 +7,16 @@
 ####################################################################################################
 */
 
-#include "kfkfModel_Elements.h"
+#include <stdlib.h>
 #include "kfkfModel.h"
 
+typedef struct tag_StateMachine {
+	S16 num_of_events;
+	S16 num_of_states;
+	EvtType_e *events;
+	State_t *states;
+	S16 current_state;
+} StateMachine_t;
 
 /* NXT Bluetooth configuration */
 #define BT_RCV_BUF_SIZE 32		/* Buffer size for bluetooth */
@@ -36,17 +43,16 @@ void receive_BT(/* StateMachine_t statemachine*/){
 	S16 matrix[RESERVED_MATRIX_SIZE];
 	S16 states[RESERVED_STATES_SIZE];
 	
-    short num_of_events,num_of_states;
     int packet_no = 1,	//packet number.
-    int ptr;
-    ///////bluetooth
-    //wait for　bluetooth
-    ////////////////////////
+    int ptr = 0;
+
     display_clear(0);
     display_goto_xy(0, 1);
     display_string("BT Communication");
     display_update();
     
+// packet type:1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     while(1){
     	// Receive first packet.
         ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
@@ -55,78 +61,107 @@ void receive_BT(/* StateMachine_t statemachine*/){
         {
         	statemachine.num_of_states = bt_receive_buf[2];
         	statemachine.num_of_events = bt_receive_buf[3];
-            //num_of_states = bt_receive_buf[2];
-            //num_of_events = bt_receive_buf[3];
 			
             packet_no++;
             break;
         }
     }
 
+// packet type:2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    display_clear(0);
+    display_goto_xy(0, 1);
+    display_string("BT Communication");
+    display_goto_xy(1, 1);
+    display_string("receive packet:event");
+    display_update();
+
     ptr = 0;
 
-    while(1/*ptr+14 <num_of_states*num_of_events*/){
-        int i=0;
+    while(1/*ptr+14 <num_of_states*num_of_events*/)
+    {
+        int i = 0;
         systick_wait_ms(100);
         
         ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
+
         if(bt_receive_buf[1] == 3)
         {
             break;
         }
-        
-        display_clear(0);
-        display_goto_xy(0, 1);
-        display_string("E0_1");
-        display_int(packet_no,4);
-        display_int(ptr,6);
-        display_update();
-        
-        if(bt_receive_buf[0]==packet_no && bt_receive_buf[1]==2){
-            for(i=2;i<16;i++){
+
+        if(bt_receive_buf[0] == packet_no && bt_receive_buf[1] == 2)
+        {
+            for(i=2;i<16;i++)
+            {
                 *(matrix+ptr) = *(bt_receive_buf+i);
                 ptr++;
             }
             packet_no++;
         }
     }
-	
-    
-    display_clear(0);
-    display_goto_xy(0, 1);
-    display_string("E0_1");
-    display_int(packet_no,4);
-    display_int(ptr,6);
-    display_update();
-    
-    display_clear(0);
-    display_goto_xy(0, 1);
-    display_string("matrix end");
-    display_update();
 
-    ptr=0;
-    while(1/*ptr+14 <(2+4)*num_of_states*/){
-        int i=0;
+    statemachine.events = (EvtType_e *)malloc(ptr);
+    if(statemachine.events == NULL)
+    {
         display_clear(0);
         display_goto_xy(0, 1);
-        display_string("S0_1");
-        display_int(packet_no,4);
-        display_int(ptr,6);
+        display_string("BT Communication");
+        display_goto_xy(1, 1);
+        display_string("Malloc Error:event");
         display_update();
+    }
+
+    for(i=0;i<ptr;i++)
+    {
+    	statemachine.events[i] = (EvtType_e)matrix[i];
+    }
+    
+
+// packet type:3 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    display_clear(0);
+    display_goto_xy(0, 1);
+    display_string("BT Communication");
+    display_goto_xy(1, 1);
+    display_string("end packet:event");
+    display_goto_xy(2, 1);
+    display_string("receive packet:state");
+    display_update();
+
+    ptr = 0;
+
+    statemachine.states = (State_t *)malloc(statemachine.num_of_states);
+    if(statemachine.states == NULL)
+    {
+        display_clear(0);
+        display_goto_xy(0, 1);
+        display_string("BT Communication");
+        display_goto_xy(1, 1);
+        display_string("end packet:event");
+        display_goto_xy(2, 1);
+        display_string("Malloc Error:state");
+        display_update();
+    }
+
+    while(1/*ptr+14 <(2+4)*num_of_states*/){
+
+        int i=0;
         systick_wait_ms(100);
 
         if(ptr!=0)
         {
             ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
         }
-        if(bt_receive_buf[1]==255)
+        if(bt_receive_buf[1] == 255)
         {
             break;
         }
         
-        
-        if(bt_receive_buf[0]==packet_no && bt_receive_buf[1]==3){
-            for(i=2;i<16;i++){
+        if(bt_receive_buf[0] == packet_no && bt_receive_buf[1] == 3)
+        {
+            for(i=2;i<16;i++)
+            {
                 *(states+ptr) = *(bt_receive_buf+i);
                 ptr++;
             }
@@ -134,11 +169,26 @@ void receive_BT(/* StateMachine_t statemachine*/){
         }
     }
     
-    //statemachine.num_of_events = num_of_events;
-    //statemachine.num_of_states = num_of_states;
+    for(i=0;i<ptr;i=i+6)
+    {
+    	statemachine[i].states.state_no = states[i];
+    	statemachine[i+1].states.action_no = (ActType_e)states[i+1];
+    	statemachine[i+2].states.value0 = states[i+2];
+    	statemachine[i+3].states.value1 = states[i+3];
+    	statemachine[i+4].states.value2 = states[i+4];
+    	statemachine[i+5].states.value3 = states[i+5];
+    }
+
+    display_clear(0);
+    display_goto_xy(0, 1);
+    display_string("BT Communication");
+    display_goto_xy(1, 1);
+    display_string("end packet:event");
+    display_goto_xy(2, 1);
+    display_string("end packet:state");
+    display_update();
+
     statemachine.current_state = 0;
-    statemachine.events = matrix;
-    statemachine.states = (State_t *)states;
 
 }
 
@@ -152,7 +202,7 @@ void receive_BT(/* StateMachine_t statemachine*/){
 	update: 2013.06.13
 ===============================================================================================
 */
-S16 get_CurrentState()
+S16 getCurrentState()
 {
 	return statemachine.current_state;
 }
@@ -167,23 +217,50 @@ S16 get_CurrentState()
 	update: 2013.06.13
 ===============================================================================================
 */
-int set_NextState(S8 event_id) {
+State_t setNextState(EvtType_e event_id) {
 	S16 next_state = -1;
 	S16 i = 0;
+	State_t nostate = {-1,NO_INPUT,0,0,0,0};
 
+	next_state = statemachine.events[event_id + statemachine.current_state * statemachine.num_of_events];
 
-	next_state = statemachine.matrix[event_id + statemachine.current_state * statemachine.num_of_events];
-
-	if(next_state == -1) return 0;
-	ecrobot_sound_tone(500,10,100);
+	if(next_state == -1) return nostate;
 
 	statemachine.current_state = next_state;
-
+/*
 	for(i = 0;i < statemachine.num_of_states;i++) {
 		if(i == statemachine.current_state) {
-			StateMachine_action(&statemachine.states[i]);
+			ControllerSet(&statemachine.states[i]);
 			return 1;
 		}
 	}
-	return 2;
+*/
+	return statemachine.states[statemachine.current_state];
+}
+
+/*
+===============================================================================================
+	name: BluetoothStart
+	Description: ??
+	Parameter: no
+	Return Value: S8
+	---
+	update: 2013.06.17
+===============================================================================================
+*/
+S8 BluetoothStart()
+{
+	boolean btstart = OFF;
+
+	ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
+	if(bt_receive_buf[1] == 254 )
+	{
+		btstart = ON;
+	}
+	else
+	{
+		btstart = OFF;
+	}
+
+	return btstart;
 }

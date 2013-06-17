@@ -6,27 +6,35 @@
 #include "ecrobot_interface.h"
 //#include <stdlib.h>
 
-#define LIGHT_BUFFER_LENGTH_MAX 1000
-#define GYRO_BUFFER_LENGTH_MAX 1000
+//#define LIGHT_BUFFER_LENGTH_MAX 250
+//#define GYRO_BUFFER_LENGTH_MAX 250
 
 
 typedef struct tag_Sensor {
-
 //////sensor values////////////////////////////
 U16 light;
-U16 pre_light;
+//U16 light_buffer[LIGHT_BUFFER_LENGTH_MAX];
+U16 light_ave;
+U16 black;
+U16 white;
+U16 target_gray;
+U16 target_gray_base;
+
 U16 gyro;
-U8 touched;
-S32 sonar;
+U16 gyro_offset;
+U16 gyro_offset_base;
+
+boolean touch;
+S32 distance;
 S32 count_left;
 S32 count_right;
 S32 count_tail;
 U16 battery;
 
+boolean bottle_is_left;
+boolean bottle_is_right;
+
 //S32 distance;
-//S32 black;
-//S32 white;
-//S32 gray;
 //S32 threshold_gray;
 //S32 calib_gray;
 //S32 white_gray_threshold;
