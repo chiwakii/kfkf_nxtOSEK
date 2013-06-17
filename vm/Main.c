@@ -783,7 +783,7 @@ State_t EventSensor(){
 */
 void serController(const State_t state)
 {
-	switch(state->action_no)
+	switch(state.action_no)
 	{
 		case NOT_TRANSITION:
 			break;
@@ -813,9 +813,9 @@ void serController(const State_t state)
 		//@param foward:=value0
 		//@param gyro_offset:=value1
 		case BALANCE_LINETRACE:
-			//controller.speed = state->value0;
-			controller.forward = state->value0;
-			sensor.gyro_offset = sensor.gyro_offset_base + state->value1;
+			//controller.speed = state.value0;
+			controller.forward = state.value0;
+			sensor.gyro_offset = sensor.gyro_offset_base + state.value1;
 
 			controller.PIDmode = WB_PID;
 			controller.standmode = BALANCE;
@@ -829,10 +829,10 @@ void serController(const State_t state)
 		//change the gray threshold
 		//@param new threshold:=value0
 		case CHANGE_GRAY:
-			//controller.color_threshold=state->value0;
-			//sensor.gray=state->value0;
+			//controller.color_threshold=state.value0;
+			//sensor.gray=state.value0;
 			//sensor.gray = sensor.calib_gray;
-			sensor.target_gray = sensor.target_gray_base + state->value0;
+			sensor.target_gray = sensor.target_gray_base + state.value0;
 
 			//controller.PIDmode = WB_PID;
 			//controller.speed = 0;
@@ -845,11 +845,11 @@ void serController(const State_t state)
 		//@param tail_run_speed :=value1
 		//@param turn :=value2
 		case TAIL_RUN_FREEDOM:
-			controller.target_tail = state->value0;
-			//controller.tail_run_speed = state->value1;
-			controller.forward = state->value1;
-			controller.turn = state->value2;
-			controller.TP_gain = state->value3;
+			controller.target_tail = state.value0;
+			//controller.tail_run_speed = state.value1;
+			controller.forward = state.value1;
+			controller.turn = state.value2;
+			controller.TP_gain = state.value3;
 
 			controller.PIDmode = NO_MODE;
 			controller.standmode = TAIL;
@@ -860,14 +860,14 @@ void serController(const State_t state)
 		case TIMER_SET:
 			eventStatus.timer_flag = ON;
 			eventStatus.start_time = systick_get_ms();
-			eventStatus.target_time = state->value0 * 100;
+			eventStatus.target_time = state.value0 * 100;
 
 			break;
 		//set motor count
 		case MOTOR_SET:
 			//eventStatus.start_motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
 			eventStatus.start_motor_count = (sensor.count_left + sensor.count_right) / 2;
-			eventStatus.target_motor_count = state->value0;
+			eventStatus.target_motor_count = state.value0;
 
 			break;
 
@@ -877,17 +877,17 @@ void serController(const State_t state)
 		//@param D_gain:=value2/100
 		case PID_SET:
 
-			controller.P_gain = (F32)state->value0 / 100;
-			controller.I_gain = (F32)state->value1 / 100;
-			controller.D_gain = (F32)state->value2 / 100;
+			controller.P_gain = (F32)state.value0 / 100;
+			controller.I_gain = (F32)state.value1 / 100;
+			controller.D_gain = (F32)state.value2 / 100;
 
 			break;
 
 		//set gyro offset for steps
 		//@param step_offset := value0
 		case STEP_OFFSET_SET:
-			controller.step_offset = state->value0;
-			//sensor.GYRO_BUFFER_LENGTH = state->value1;
+			controller.step_offset = state.value0;
+			//sensor.GYRO_BUFFER_LENGTH = state.value1;
 			break;
 
 		//up the tail
@@ -902,10 +902,10 @@ void serController(const State_t state)
  		case TAIL_LINETRACE:
 			controller.PIDmode = WB_PID;
 			controller.standmode = TAIL;
-			controller.target_tail = state->value0;
-			//controller.tail_run_speed = state->value1;
-			controller.forward = state->value1;
-			controller.TP_gain = state->value2;
+			controller.target_tail = state.value0;
+			//controller.tail_run_speed = state.value1;
+			controller.forward = state.value1;
+			controller.TP_gain = state.value2;
 			break;
 
 		//circling
@@ -918,41 +918,41 @@ void serController(const State_t state)
 			//controller.tail_run_speed=1;
 			/*if(controller.balance_flag == ON)
 			{
-				controller.turn = state->value1;
+				controller.turn = state.value1;
 			}
 			else
 			{
-				controller.turn = -(state->value1);
+				controller.turn = -(state.value1);
 			}*/
 
-			if( state->value0 > 0 )
+			if( state.value0 > 0 )
 			{
-				controller.turn = state->value1;
+				controller.turn = state.value1;
 			}
 			else
 			{
-				controller.turn = -(state->value1);
+				controller.turn = -(state.value1);
 			}
 
-			/*if(state->value0 < 0){
+			/*if(state.value0 < 0){
 				controller.turn *= -1;
 			}*/
 			eventStatus.start_pivot_turn_encoder_R = sensor.count_right;
-			eventStatus.target_pivot_turn_angle_R = calc_angle2encoder(state->value0);
+			eventStatus.target_pivot_turn_angle_R = calc_angle2encoder(state.value0);
 			eventStatus.pivot_turn_flag = ON;
 			break;
 
 		//selecting logger
 		//@param log_type
 		case SELECT_LOGTYPE:
-			logger.type = state->value0;
+			logger.type = state.value0;
 			break;
 
 		//set the gray_market offset
 		//@param gray_offset
 		case GRAY_MARKER_OFFSET:
-			controller.gray_offset = state->value0;
-			//sensor.LIGHT_BUFFER_LENGTH = state->value1;
+			controller.gray_offset = state.value0;
+			//sensor.LIGHT_BUFFER_LENGTH = state.value1;
 
 			break;
 
@@ -961,9 +961,9 @@ void serController(const State_t state)
 			controller.PIDmode = NO_MODE;
 			controller.standmode = BALANCE;
 
-			controller.forward = state->value0;
-			controller.turn = state->value1;
-			sensor.gyro_offset = sensor.gyro_offset_base + state->value2;
+			controller.forward = state.value0;
+			controller.turn = state.value1;
+			sensor.gyro_offset = sensor.gyro_offset_base + state.value2;
 
 			//nxt_motor_set_speed(TAIL_MOTOR,0,1);
 
@@ -971,20 +971,20 @@ void serController(const State_t state)
 
 		//set_sonar_sensor
 		case SONAR_SET:
-			eventStatus.target_distance = state->value0;
+			eventStatus.target_distance = state.value0;
 			break;
 
 		case SERACH_BOTTLE_RIGHT:
 			controller.forward = 0;
 
-			eventStatus.bottle_right_length = state->value0;
+			eventStatus.bottle_right_length = state.value0;
 			eventStatus.bottle_right_flag = ON;
 			break;
 
 		case SEARCH_BOTTLE_LEFT:
 			controller.forward = 0;
 
-			eventStatus.bottle_left_length = state->value0;
+			eventStatus.bottle_left_length = state.value0;
 			eventStatus.bottle_left_flag = ON;
 
 			break;
@@ -1040,7 +1040,7 @@ void tail_run_turn2pwm(S16 tail_run_speed ,float turn ,S8 *_pwm_L, S8 *_pwm_R)
 	}
 
 }
-
+*/
 /*
 ===============================================================================================
 	name: calc_angle2encoder
