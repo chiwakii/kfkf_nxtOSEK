@@ -1,5 +1,6 @@
-enum LogType
+typedef enum LogType
 {
+	LOG_NO = -1,
 	LOG_STATE = 0,
 	LOG_TURN = 1,
 	LOG_PWM = 2,
@@ -10,7 +11,7 @@ enum LogType
 	LOG_DT = 7,
 	LOG_BALANCE_TAIL = 8,
 	LOG_LOOP = 9
-};
+}LogType_e;
 
 typedef struct tag_Logger{
 

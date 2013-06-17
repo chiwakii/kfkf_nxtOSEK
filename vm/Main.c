@@ -56,31 +56,22 @@ void tailstand();
 	variables
 ===============================================================================================
 */
-static U8 count = 0;
-static U32 sum = 0;
-static boolean flag_calib = OFF;
+static U16 g_Count = 0;
+static U32 g_Sum = 0;
+static boolean g_CalibFlag = OFF;
 
-int i;
-int rest;
-int i_value = 0;
+static S8 g_pwm_L = 0;
+static S8 g_pwm_R = 0;
+static S8 g_pwm_T = 0;
 
+//static U16 i;
 ///////state machine//////////////////////
 
-Sensor_t sensor;
-Controller_t controller;
+static Sensor_t g_Sensor;
+static Controller_t g_Controller;
 
-Event_t *events;
-Controller_t controller;
-
-////////balance_control//////////////////////
-
-	S8 init=0;
-	S8 turn;
-	
-//////sensor/////////////////////
-Sensor_t sensor;  //initialize later
-EventStatus_t eventStatus = {LIGHT_STATUS_UNDEFINED, 0, TOUCH_STATUS_NOTPRESSED, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0};
-Logger_t logger={LOG_NO};
+static EventStatus_t g_EventStatus = {LIGHT_STATUS_UNDEFINED, 0, TOUCH_STATUS_NOTPRESSED, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0};
+static LogType_e = g_LogType = LOG_NO;
 
 /*
 ===============================================================================================
@@ -153,78 +144,78 @@ TASK(TaskMain)
 		//to GYROCALIB
 		break;
 	case GYROCALIB:	 /* Do calibration */
-		if( sensor.touch == ON ) flag_calib = 1;
+		if( sensor.touch == ON ) g_CalibFlag = ON;
 
-		if(flag_calib == ON)
+		if(g_CalibFlag == ON)
 		{
-			count++;
-			sum += sensor.gyro;
+			g_Count++;
+			g_Sum += sensor.gyro;
 		}
 
-		if(count >= 100)
+		if(g_Count >= 100)
 		{
-			sensor.gyro_offset = (F32)sum/count;
-			flag_calib = OFF;
-			sum = 0;
-			count = 0;
+			sensor.gyro_offset = (F32)g_Sum/g_Count;
+			g_CalibFlag = OFF;
+			g_Sum = 0;
+			g_Count = 0;
 			//to GRAYCALIB
 		}
 		break;
 
 	case GRAYCALIB:
-		if( sensor.touch == ON ) flag_calib = 1;
+		if( sensor.touch == ON ) g_CalibFlag = ON;
 
-		if(flag_calib == 1)
+		if(g_CalibFlag == 1)
 		{
-			count++;
-			sum += sensor.light;
+			g_Count++;
+			g_Sum += sensor.light;
 		}
 
-		if(count >= 100)
+		if(g_Count >= 100)
 		{
-			sensor.target_gray = (F32)sum/count;
+			sensor.target_gray = (F32)g_Sum/g_Count;
 			sensor.target_gray_base = controller.target_gray;
-			flag_calib = OFF;
-			sum = 0;
-			count = 0;
+			g_CalibFlag = OFF;
+			g_Sum = 0;
+			g_Count = 0;
 			//to WHITECALIB
 		}
 		break;
 
 	case WHITECALIB:
-		if( sensor.touch == ON ) flag_calib = ON;
+		if( sensor.touch == ON ) g_CalibFlag = ON;
 
-		if(flag_calib == ON)
+		if(g_CalibFlag == ON)
 		{
-			count++;
-			sum += sensor.light;
+			g_Count++;
+			g_Sum += sensor.light;
 		}
 
-		if(count >= 100)
+		if(g_Count >= 100)
 		{
-			sensor.white = (F32)sum/count;
-			flag_calib = OFF;
-			sum = 0;
-			count = 0;
+			sensor.white = (F32)g_Sum/g_Count;
+			g_CalibFlag = OFF;
+			g_Sum = 0;
+			g_Count = 0;
 			//to BLACKCALIB
 		}
 		break;
 
 	case BLACKCALIB:
-		if( sensor.touch == ON ) flag_calib = ON;
+		if( sensor.touch == ON ) g_CalibFlag = ON;
 
-		if( flag_calib == ON )
+		if( g_CalibFlag == ON )
 		{
-			count++;
-			sum += sensor.light;
+			g_Count++;
+			g_Sum += sensor.light;
 		}
 
-		if(count >= 100)
+		if(g_Count >= 100)
 		{
-			sensor.black = (F32)sum/count;
-			flag_calib = OFF;
-			sum = 0;
-			count = 0;
+			sensor.black = (F32)g_Sum/g_Count;
+			g_CalibFlag = OFF;
+			g_Sum = 0;
+			g_Count = 0;
 			//to ACTION
 		}
 		break;
@@ -234,7 +225,7 @@ TASK(TaskMain)
 		break;
 	}
 
-	TerminateTask();					
+	TerminateTask();
 }
 
 
@@ -248,9 +239,9 @@ TASK(TaskMain)
 */
 TASK(TaskActuator)
 {
-	S8 pwm_L = 0;
-	S8 pwm_R = 0;
-	S8 pwm_T = 0;
+	g_pwm_L = 0;
+	g_pwm_R = 0;
+	g_pwm_T = 0;
 
 	if( controller.PIDmode != NO_MODE )
 	{
@@ -262,7 +253,7 @@ TASK(TaskActuator)
 		}
 		else if( controller.PIDmode == WG_PID )
 		{
-			controller.dif = sensor.light - sensor.white_gray_threshold;//?
+			//controller.dif = sensor.light - sensor.white_gray_threshold;//?
 		}
 
 		controller.differential = controller.dif - controller.pre_dif;
@@ -276,16 +267,16 @@ TASK(TaskActuator)
 	controller.tail_pre_dif = controller.tail_dif;
 	controller.tail_dif = controller.target_tail - sensor.count_tail;
 
-	//pwm_T = (U8)( controller.TP_gain * controller.tail_dif + controller.TD_gain * (controller.tail_pre_dif - controller.tail_dif) );
-	pwm_T = (U8)( controller.TP_gain * controller.tail_dif );
+	//g_pwm_T = (U8)( controller.TP_gain * controller.tail_dif + controller.TD_gain * (controller.tail_pre_dif - controller.tail_dif) );
+	g_pwm_T = (U8)( controller.TP_gain * controller.tail_dif );
 
-	if(pwm_T > 100)
+	if(g_pwm_T > 100)
 	{
-		pwm_T = 100;
+		g_pwm_T = 100;
 	}
-	else if(pwm_T < -100)
+	else if(g_pwm_T < -100)
 	{
-		pwm_T = -100;
+		g_pwm_T = -100;
 	}
 	
 	if( controller.standmode == BALANCE )
@@ -298,8 +289,8 @@ TASK(TaskActuator)
 			(F32)sensor.count_left,
 			(F32)sensor.count_right,
 			(F32)sensor.battery,
-			&pwm_L,
-			&pwm_R
+			&g_pwm_L,
+			&g_pwm_R
 		);
 	
 	}
@@ -314,15 +305,15 @@ TASK(TaskActuator)
 			(F32)sensor.count_left,
 			(F32)sensor.count_right,
 			(F32)sensor.battery,
-			&pwm_L,
-			&pwm_R
+			&g_pwm_L,
+			&g_pwm_R
 		);
 
 	}
 
-	nxt_motor_set_speed( TAIL_MOTOR, pwm_T, 1 );
-	nxt_motor_set_speed( LEFT_MOTOR, pwm_L, 1 );
-	nxt_motor_set_speed( RIGHT_MOTOR, pwm_R, 1 );
+	nxt_motor_set_speed( TAIL_MOTOR, g_pwm_T, 1 );
+	nxt_motor_set_speed( LEFT_MOTOR, g_pwm_L, 1 );
+	nxt_motor_set_speed( RIGHT_MOTOR, g_pwm_R, 1 );
 
 	TerminateTask();
 }
@@ -345,6 +336,8 @@ static U32 lightave = 0;
 
 TASK(TaskSensor)
 {
+	U8 i = 0;
+
 	//==========================================
 	//	Data Update of Sensor
 	//==========================================
@@ -358,7 +351,7 @@ TASK(TaskSensor)
 	g_LightCnt++;
 	if( g_LightCnt >= LIGHT_BUFFER_LENGTH_MAX ) g_LightCnt = 0;
 
-	for(i=0;i >= LIGHT_BUFFER_LENGTH_MAX;i++)
+	for(i=0;i < LIGHT_BUFFER_LENGTH_MAX;i++)
 	{
 		lightave += lightbuffer[i];
 	}
@@ -415,13 +408,17 @@ TASK(TaskSensor)
 
 
 	//Bottle Detecting
-	if(eventStatus.bottle_right_length > 0){
-		if(sensor.distance < eventStatus.bottle_right_length){
+	if(eventStatus.bottle_right_length > 0)
+	{
+		if(sensor.distance < eventStatus.bottle_right_length)
+		{
 			sensor.bottle_is_right = ON;
 		}
 	}
-	if(eventStatus.bottle_left_length > 0){
-		if(sensor.distance < eventStatus.bottle_left_length){
+	if(eventStatus.bottle_left_length > 0)
+	{
+		if(sensor.distance < eventStatus.bottle_left_length)
+		{
 			sensor.bottle_is_left = ON;
 		}
 	}
@@ -437,44 +434,63 @@ TASK(TaskSensor)
 
 ###################################################################
 */
-TASK(TaskLogger){
+TASK(TaskLogger)
+{
 
-	S8 _ang = nxt_motor_get_count(RIGHT_MOTOR) - eventStatus.circling_start_encoder_R -eventStatus.circling_target_angle_R;
-	int rest_motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2 - eventStatus.start_motor_count - eventStatus.motor_count;
+	S8 ang = sensor.count_right - eventStatus.start_pivot_turn_encoder_R - eventStatus.target_pivot_turn_angle_R;
+	int rest_motor_count = (sensor.count_left + sensor.count_right) / 2 - eventStatus.start_motor_count - eventStatus.target_motor_count;
 	
-		switch(logger.type){
+		switch(logger.type)
+		{
 			case LOG_STATE:
-				ecrobot_bt_data_logger((S8)get_CurrentState(),111);
+				ecrobot_bt_data_logger( (S8)getCurrentState(), 0 );
 				break;
+
 			case LOG_TURN:
-				ecrobot_bt_data_logger((S8)controller.turn,112);		
+				ecrobot_bt_data_logger( (S8)controller.turn, 0 );
 				break;
+
 			case LOG_PWM:
-				ecrobot_bt_data_logger((S8)pwm_L,pwm_R);
+				ecrobot_bt_data_logger( (S8)g_pwm_L, (S8)g_pwm_R );
 				break;
+
 			case LOG_TARGET_ANGLE:
-				ecrobot_bt_data_logger((S8)(_ang/100),(S8)(_ang%100));
+				ecrobot_bt_data_logger( (S8)(ang/100), (S8)(ang%100) );
 				break;
+
 			case LOG_MOTOR_COUNT:
-				ecrobot_bt_data_logger((S8)(rest_motor_count%100),(S8)(rest_motor_count/100));
+				ecrobot_bt_data_logger( (S8)(rest_motor_count%100), (S8)(rest_motor_count/100) );
 				break;
+
 			case LOG_SONAR:
-				ecrobot_bt_data_logger((S8)(sensor.sonar%100),(S8)(sensor.sonar/100));
+				ecrobot_bt_data_logger( (S8)(sensor.distance%100), (S8)(sensor.distance/100) );
 				break;
+
 			case LOG_DT:
-				ecrobot_bt_data_logger((S8)(sensor.bottle_is_right),(S8)(sensor.bottle_is_left));
+				ecrobot_bt_data_logger( (S8)(sensor.bottle_is_right), (S8)(sensor.bottle_is_left) );
 				break;
+
 			case LOG_BALANCE_TAIL:
-				ecrobot_bt_data_logger((S8)(controller.tail_on),(S8)(controller.balance_on));
+				if( controller.PIDmode == BALANCE )
+				{
+					ecrobot_bt_data_logger( (S8)OFF, (S8)ON );
+				}
+				else if( controller.PIDmode == TAIL )
+				{
+					ecrobot_bt_data_logger( (S8)ON, (S8)OFF );
+				}
+				else
+				{
+					ecrobot_bt_data_logger( (S8)OFF, (S8)OFF );
+				}
 				break;
-			case LOG_LOOP:
-				ecrobot_bt_data_logger((S8)(eventStatus.loop_count),(S8)(eventStatus.num_to_loop));
-				break;
+
 			default:
-				ecrobot_bt_data_logger(sensor.gyro,sensor.light);
+				ecrobot_bt_data_logger( (S8)g_pwm_L, (S8)g_pwm_R );
 				break;
 
 		}
+
 		TerminateTask();
 }
 
@@ -493,6 +509,32 @@ TASK(TaskLogger){
 */
 void InitNXT()
 {
+	U8 i = 0;
+
+	//==========================================
+	//	initialize StateMachine
+	//==========================================
+	InitStateMachine();
+
+	//==========================================
+	//	initialize global variables
+	//==========================================
+	g_Count = 0;
+	g_Sum = 0;
+	g_CalibFlag = OFF;
+
+	g_pwm_L = 0;
+	g_pwm_R = 0;
+	g_pwm_T = 0;
+
+	g_SonarCnt = 0;
+	g_LightCnt = 0;
+	lightave = 0;
+	for(i=0;i<LIGHT_BUFFER_LENGTH_MAX;i++)
+	{
+		lightbuffer[i] = 0;
+	}
+
 	//==========================================
 	//	initialize motor & balancer
 	//==========================================

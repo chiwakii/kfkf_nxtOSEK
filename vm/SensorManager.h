@@ -54,8 +54,8 @@ boolean bottle_is_right;
 //U16 LIGHT_BUFFER_LENGTH;
 //U16 GYRO_BUFFER_LENGTH;
 
-#define V_LIGHT_BUFFER_LENGTH 10
-#define V_GYRO_BUFFER_LENGTH 10
+//#define V_LIGHT_BUFFER_LENGTH 10
+//#define V_GYRO_BUFFER_LENGTH 10
 
 //S8 light_V;
 //S8 gyro_V;

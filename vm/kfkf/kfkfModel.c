@@ -26,7 +26,20 @@ typedef struct tag_StateMachine {
 
 S16 bt_receive_buf[BT_RCV_BUF_SIZE];	/* bluetooth */
 
-static StateMachine_t statemachine;
+static StateMachine_t g_StateMachine;
+
+void InitStateMachine(void)
+{
+	g_StateMachine.num_of_events = 0;
+	g_StateMachine.num_of_states = 0;
+	g_StateMachine.current_state = 0;
+
+	free( g_StateMachine.events );
+	g_StateMachine.events = NULL;
+
+	free( g_StateMachine.states );
+	g_StateMachine.states = NULL;
+}
 
 /*
 ===============================================================================================
@@ -38,7 +51,7 @@ static StateMachine_t statemachine;
 	update: 2013.06.13
 ===============================================================================================
 */
-void receive_BT(/* StateMachine_t statemachine*/){
+void receive_BT(void){
 	
 	S16 matrix[RESERVED_MATRIX_SIZE];
 	S16 states[RESERVED_STATES_SIZE];
@@ -59,8 +72,8 @@ void receive_BT(/* StateMachine_t statemachine*/){
 		
         if(bt_receive_buf[0] == packet_no && bt_receive_buf[1] == 1)
         {
-        	statemachine.num_of_states = bt_receive_buf[2];
-        	statemachine.num_of_events = bt_receive_buf[3];
+        	g_StateMachine.num_of_states = bt_receive_buf[2];
+        	g_StateMachine.num_of_events = bt_receive_buf[3];
 			
             packet_no++;
             break;
@@ -101,8 +114,8 @@ void receive_BT(/* StateMachine_t statemachine*/){
         }
     }
 
-    statemachine.events = (EvtType_e *)malloc(ptr);
-    if(statemachine.events == NULL)
+    g_StateMachine.events = (EvtType_e *)malloc(ptr);
+    if(g_StateMachine.events == NULL)
     {
         display_clear(0);
         display_goto_xy(0, 1);
@@ -114,7 +127,7 @@ void receive_BT(/* StateMachine_t statemachine*/){
 
     for(i=0;i<ptr;i++)
     {
-    	statemachine.events[i] = (EvtType_e)matrix[i];
+    	g_StateMachine.events[i] = (EvtType_e)matrix[i];
     }
     
 
@@ -131,8 +144,8 @@ void receive_BT(/* StateMachine_t statemachine*/){
 
     ptr = 0;
 
-    statemachine.states = (State_t *)malloc(statemachine.num_of_states);
-    if(statemachine.states == NULL)
+    g_StateMachine.states = (State_t *)malloc(g_StateMachine.num_of_states);
+    if(g_StateMachine.states == NULL)
     {
         display_clear(0);
         display_goto_xy(0, 1);
@@ -171,12 +184,12 @@ void receive_BT(/* StateMachine_t statemachine*/){
     
     for(i=0;i<ptr;i=i+6)
     {
-    	statemachine[i].states.state_no = states[i];
-    	statemachine[i+1].states.action_no = (ActType_e)states[i+1];
-    	statemachine[i+2].states.value0 = states[i+2];
-    	statemachine[i+3].states.value1 = states[i+3];
-    	statemachine[i+4].states.value2 = states[i+4];
-    	statemachine[i+5].states.value3 = states[i+5];
+    	g_StateMachine[i].states.state_no = states[i];
+    	g_StateMachine[i+1].states.action_no = (ActType_e)states[i+1];
+    	g_StateMachine[i+2].states.value0 = states[i+2];
+    	g_StateMachine[i+3].states.value1 = states[i+3];
+    	g_StateMachine[i+4].states.value2 = states[i+4];
+    	g_StateMachine[i+5].states.value3 = states[i+5];
     }
 
     display_clear(0);
@@ -188,7 +201,7 @@ void receive_BT(/* StateMachine_t statemachine*/){
     display_string("end packet:state");
     display_update();
 
-    statemachine.current_state = 0;
+    g_StateMachine.current_state = 0;
 
 }
 
@@ -197,14 +210,14 @@ void receive_BT(/* StateMachine_t statemachine*/){
 	name: get_CurrentState
 	Description: ??
 	Parameter: no
-	Return Value: statemachine.current_state
+	Return Value: g_StateMachine.current_state
 	---
 	update: 2013.06.13
 ===============================================================================================
 */
 S16 getCurrentState()
 {
-	return statemachine.current_state;
+	return g_StateMachine.current_state;
 }
 
 /*
@@ -222,20 +235,20 @@ State_t setNextState(EvtType_e event_id) {
 	S16 i = 0;
 	State_t nostate = {-1,NO_INPUT,0,0,0,0};
 
-	next_state = statemachine.events[event_id + statemachine.current_state * statemachine.num_of_events];
+	next_state = g_StateMachine.events[event_id + g_StateMachine.current_state * g_StateMachine.num_of_events];
 
 	if(next_state == -1) return nostate;
 
-	statemachine.current_state = next_state;
+	g_StateMachine.current_state = next_state;
 /*
-	for(i = 0;i < statemachine.num_of_states;i++) {
-		if(i == statemachine.current_state) {
-			ControllerSet(&statemachine.states[i]);
+	for(i = 0;i < g_StateMachine.num_of_states;i++) {
+		if(i == g_StateMachine.current_state) {
+			ControllerSet(&g_StateMachine.states[i]);
 			return 1;
 		}
 	}
 */
-	return statemachine.states[statemachine.current_state];
+	return g_StateMachine.states[g_StateMachine.current_state];
 }
 
 /*
@@ -248,7 +261,7 @@ State_t setNextState(EvtType_e event_id) {
 	update: 2013.06.17
 ===============================================================================================
 */
-S8 BluetoothStart()
+S8 BluetoothStart(void)
 {
 	boolean btstart = OFF;
 

@@ -122,13 +122,15 @@ typedef struct tag_EventStatus {
 //--------------------------------------------------------------------
 //	functions
 //--------------------------------------------------------------------
+//
+void InitStateMachine(void);
 // Receive kfkf model data.
 void receive_BT(StateMachine_t statemachine);
 // Return current kfkf model state.
-S16 getCurrentState();
+S16 getCurrentState(void);
 // ??
 State_t setNextState(EvtType_e event_id);
 //
-S8 BluetoothStart();
+S8 BluetoothStart(void);
 
 #endif

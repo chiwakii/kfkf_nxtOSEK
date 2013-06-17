@@ -1,7 +1,8 @@
 # Target specific macros
 TARGET = TASK_CYCLE
 
-NXT_OSEK_ROOT = /cygwin/nxtOSEK
+#NXT_OSEK_ROOT = /cygwin/nxtOSEK
+NXT_OSEK_ROOT = /cygdrive/c/cygwin/nxtOSEK
 
 # nxtway_gs_balancer library designed for NXTway-GS two wheeled self-balancing robot
 USER_INC_PATH = $(NXTOSEK_ROOT)/ecrobot/nxtway_gs_balancer
@@ -19,7 +20,7 @@ TARGET_SOURCES = \
 	
 
 # OSEK OIL file
-TOPPERS_OSEK_OIL_SOURCE = task_cycle.oil
+TOPPERS_OSEK_OIL_SOURCE = ./task_cycle.oil
 
 # Don't modify below part
 O_PATH ?= build
