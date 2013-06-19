@@ -582,7 +582,7 @@ TASK(TaskLogger)
 			break;
 
 		default:
-			ecrobot_bt_data_logger( (S8)g_g_pwm_L, (S8)g_g_pwm_R );
+			ecrobot_bt_data_logger( (S8)g_pwm_L, (S8)g_pwm_R );
 			break;
 
 	}
