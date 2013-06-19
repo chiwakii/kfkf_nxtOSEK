@@ -26,12 +26,12 @@ typedef struct tag_Controller{
 	//F32 speed;
 
 	PIDMode_e PIDmode;
-	//boolean pid_flag;
-	//boolean wg_pid_flag;
+	//U8 pid_flag;
+	//U8 wg_pid_flag;
 
 	StandMode_e StandMode;
-	//boolean balance_flag;
-	//boolean tail_flag;
+	//U8 balance_flag;
+	//U8 tail_flag;
 	
 	S8 forward;
 	S8 turn;

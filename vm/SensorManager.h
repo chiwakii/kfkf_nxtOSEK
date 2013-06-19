@@ -24,15 +24,15 @@ U16 gyro;
 U16 gyro_offset;
 U16 gyro_offset_base;
 
-boolean touch;
+U8 touch;
 S32 distance;
 S32 count_left;
 S32 count_right;
 S32 count_tail;
 U16 battery;
 
-boolean bottle_is_left;
-boolean bottle_is_right;
+U8 bottle_is_left;
+U8 bottle_is_right;
 
 //S32 distance;
 //S32 threshold_gray;

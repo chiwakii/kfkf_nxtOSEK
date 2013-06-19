@@ -90,32 +90,32 @@ typedef struct tag_State {
 
 //event manager
 typedef struct tag_EventStatus {
-	boolean touch_status;
+	U8 touch_status;
 
 	LightStatus_e light_status;
 	//S32 gray_marker_count;
 
 	U8 target_distance;
 
-	boolean timer_flag;
+	U8 timer_flag;
 	U32 start_time;
 	U32 target_time;
 
-	boolean motor_counter_flag;
+	U8 motor_counter_flag;
 	S32 start_motor_count;
 	S32 target_motor_count;
 
-	boolean BTstart;
+	U8 BTstart;
 
-	boolean pivot_turn_flag;
+	U8 pivot_turn_flag;
 	S32 start_pivot_turn_encoder_R;
 	S32 target_pivot_turn_angle_R;
 
-	boolean bottle_left_flag;
-	boolean bottle_right_flag;
+	U8 bottle_left_flag;
+	U8 bottle_right_flag;
 	U8 bottle_left_length;
 	U8 bottle_right_length;
-	boolean bottle_judge;
+	U8 bottle_judge;
 
 } EventStatus_t;
 

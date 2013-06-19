@@ -268,7 +268,7 @@ State_t setNextState(EvtType_e event_id) {
 */
 S8 BluetoothStart(void)
 {
-	boolean btstart = OFF;
+	U8 btstart = OFF;
 
 	ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 	if(bt_receive_buf[1] == 254 )

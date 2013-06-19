@@ -9,10 +9,11 @@
 //
 #include "Common.h"
 #include "NXT_Config.h"
-#include "kfkf/kfkfModel.h"
-#include "Logger.h"
 #include "SensorManager.h"
 #include "Controller.h"
+
+#include "kfkf/kfkfModel.h"
+#include "kfkf/Logger.h"
 
 /*
 ===============================================================================================
@@ -170,7 +171,7 @@ void user_1ms_isr_type2(void){
 static U8 g_CalibCnt = 0;
 static U32 g_CalibGyroSum = 0;
 static U32 g_CalibLightSum = 0;
-static boolean g_CalibFlag = OFF;
+static U8 g_CalibFlag = OFF;
 static MainTaskState_e g_MTState = INIT;
 
 //--------------------------------------------------------------------
@@ -830,7 +831,7 @@ State_t EventSensor(){
 	//--------------------------------
 	//	Event:bluetooth start
 	//--------------------------------
-	boolean bts = BluetoothStart();
+	U8 bts = BluetoothStart();
 	if(g_EventStatus.BTstart == OFF && bts == ON)
 	{
 		tmp = setNextState(BT_START);
