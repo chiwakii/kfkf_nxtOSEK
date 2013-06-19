@@ -422,7 +422,7 @@ static U32 g_LightAve = 0;
 //--------------------------------------------------------------------
 TASK(TaskSensor)
 {
-	//U8 i = 0;
+	U8 i = 0;
 
 	//==========================================
 	//	Data Update of Sensor
@@ -547,7 +547,7 @@ TASK(TaskLogger)
 			break;
 
 		case LOG_PWM:
-			ecrobot_bt_data_logger( (S8)g_g_pwm_L, (S8)g_g_pwm_R );
+			ecrobot_bt_data_logger( (S8)g_pwm_L, (S8)g_pwm_R );
 			break;
 
 		case LOG_TARGET_ANGLE:
