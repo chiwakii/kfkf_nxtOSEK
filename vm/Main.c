@@ -71,6 +71,10 @@ void TailStand();
 	variables
 ===============================================================================================
 */
+S8 g_pwm_L = 0;
+S8 g_pwm_R = 0;
+S8 g_pwm_T = 0;
+
 //--------------------------------------------------------------------
 //	For sensing
 //--------------------------------------------------------------------
@@ -306,9 +310,9 @@ TASK(TaskActuator)
 	//==========================================
 	//  PWM
 	//==========================================
-	S8 pwm_L = 0;
-	S8 pwm_R = 0;
-	S8 pwm_T = 0;
+	g_pwm_L = 0;
+	g_pwm_R = 0;
+	g_pwm_T = 0;
 
 	//==========================================
 	//	Calculate PWM of right & left motor
@@ -347,8 +351,8 @@ TASK(TaskActuator)
 			(F32)g_Sensor.count_left,
 			(F32)g_Sensor.count_right,
 			(F32)g_Sensor.battery,
-			&pwm_L,
-			&pwm_R
+			&g_pwm_L,
+			&g_pwm_R
 		);
 	
 	}
@@ -363,8 +367,8 @@ TASK(TaskActuator)
 			(F32)g_Sensor.count_left,
 			(F32)g_Sensor.count_right,
 			(F32)g_Sensor.battery,
-			&pwm_L,
-			&pwm_R
+			&g_pwm_L,
+			&g_pwm_R
 		);
 
 	}
@@ -373,23 +377,23 @@ TASK(TaskActuator)
 	//	Calculate PWM of tail motor
 	//==========================================
 	//g_pwm_T = (U8)( g_Controller.TP_gain * g_Controller.tail_dif + g_Controller.TD_gain * (g_Controller.tail_pre_dif - g_Controller.tail_dif) );
-	pwm_T = (U8)( g_Controller.TP_gain * g_Controller.tail_dif );
+	g_pwm_T = (U8)( g_Controller.TP_gain * g_Controller.tail_dif );
 
-	if(pwm_T > 100)
+	if(g_pwm_T > 100)
 	{
-		pwm_T = 100;
+		g_pwm_T = 100;
 	}
-	else if(pwm_T < -100)
+	else if(g_pwm_T < -100)
 	{
-		pwm_T = -100;
+		g_pwm_T = -100;
 	}
 
 	//==========================================
 	//  Set PWM
 	//==========================================
-	nxt_motor_set_speed( TAIL_MOTOR, pwm_T, 1 );
-	nxt_motor_set_speed( LEFT_MOTOR, pwm_L, 1 );
-	nxt_motor_set_speed( RIGHT_MOTOR, pwm_R, 1 );
+	nxt_motor_set_speed( TAIL_MOTOR, g_pwm_T, 1 );
+	nxt_motor_set_speed( LEFT_MOTOR, g_pwm_L, 1 );
+	nxt_motor_set_speed( RIGHT_MOTOR, g_pwm_R, 1 );
 
 	//==========================================
 	//  Termination of Task
@@ -532,7 +536,7 @@ TASK(TaskLogger)
 	//==========================================
 	//  Select log type
 	//==========================================
-	switch(g_LogType.type)
+	switch(g_LogType)
 	{
 		case LOG_STATE:
 			ecrobot_bt_data_logger( (S8)getCurrentState(), 0 );
@@ -543,7 +547,7 @@ TASK(TaskLogger)
 			break;
 
 		case LOG_PWM:
-			ecrobot_bt_data_logger( (S8)g_pwm_L, (S8)g_pwm_R );
+			ecrobot_bt_data_logger( (S8)g_g_pwm_L, (S8)g_g_pwm_R );
 			break;
 
 		case LOG_TARGET_ANGLE:
@@ -578,7 +582,7 @@ TASK(TaskLogger)
 			break;
 
 		default:
-			ecrobot_bt_data_logger( (S8)g_pwm_L, (S8)g_pwm_R );
+			ecrobot_bt_data_logger( (S8)g_g_pwm_L, (S8)g_g_pwm_R );
 			break;
 
 	}
