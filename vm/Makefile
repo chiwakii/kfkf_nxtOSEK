@@ -5,7 +5,7 @@ TARGET = KFKF_MODEL
 NXT_OSEK_ROOT = /cygdrive/c/cygwin/nxtOSEK
 
 # nxtway_gs_balancer library designed for NXTway-GS two wheeled self-balancing robot
-USER_INC_PATH = $(NXTOSEK_ROOT)/ecrobot/nxtway_gs_balancer
+USER_INC_PATH = $(NXT_OSEK_ROOT)/ecrobot/nxtway_gs_balancer
 USER_LIB = nxtway_gs_balancer
 
 # using NXT standard tires (not Motorcycle tires)
