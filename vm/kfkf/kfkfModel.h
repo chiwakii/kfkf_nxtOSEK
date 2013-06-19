@@ -26,7 +26,7 @@
 //--------------------------------------------------------------------
 typedef enum ActType
 {
-	NOT_TRANSITION = -1,
+	NO_TRANSITION = -1,
 	DO_NOTHING = 0,
 	BALANCE_STOP = 1,
 	BALANCE_LINETRACE = 2,

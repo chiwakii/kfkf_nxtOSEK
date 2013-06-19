@@ -7,16 +7,16 @@
 
 #include "Common.h"
 
-typedef enum PIDMode
+typedef enum _PIDMode
 {
-	NO_MODE = 0,
+	NO_PID_MODE = 0,
 	WB_PID = 1,
 	WG_PID = 2
 }PIDMode_e;
 
-typedef enum StandMode
+typedef enum _StandMode
 {
-	NO_MODE = 0,
+	NO_STAND_MODE = 0,
 	BALANCE = 1,
 	TAIL = 2
 }StandMode_e;
@@ -29,7 +29,7 @@ typedef struct tag_Controller{
 	//boolean pid_flag;
 	//boolean wg_pid_flag;
 
-	StandMode_e standmode;
+	StandMode_e StandMode;
 	//boolean balance_flag;
 	//boolean tail_flag;
 	

@@ -230,16 +230,21 @@ S16 getCurrentState()
 	update: 2013.06.13
 ===============================================================================================
 */
+#define NO_STATE -1
+
 State_t setNextState(EvtType_e event_id) {
-	S16 next_state = -1;
-	S16 i = 0;
-	State_t nostate = {-1,NO_INPUT,0,0,0,0};
+	S8 next_state = NO_STATE;
+	//S16 i = 0;
+	State_t state = {-1,-1,0,0,0,0};
 
 	next_state = g_StateMachine.events[event_id + g_StateMachine.current_state * g_StateMachine.num_of_events];
 
-	if(next_state == -1) return nostate;
+	if(next_state != NO_STATE)
+	{
+		g_StateMachine.current_state = next_state;
+		state = g_StateMachine.states[g_StateMachine.current_state];
+	}
 
-	g_StateMachine.current_state = next_state;
 /*
 	for(i = 0;i < g_StateMachine.num_of_states;i++) {
 		if(i == g_StateMachine.current_state) {
@@ -248,7 +253,7 @@ State_t setNextState(EvtType_e event_id) {
 		}
 	}
 */
-	return g_StateMachine.states[g_StateMachine.current_state];
+	return state;
 }
 
 /*
