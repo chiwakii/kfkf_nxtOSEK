@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdlib.h>
 //
 #include "kernel.h"
 #include "kernel_id.h"
@@ -86,7 +87,7 @@ static EventStatus_t g_EventStatus = {NO,0,0,NO,0,0,NO,0,0,NO,NO,0,0,NO,NO,0,0,N
 //--------------------------------------------------------------------
 //	For logging
 //--------------------------------------------------------------------
-static LogType_e = g_LogType = LOG_NO;
+static LogType_e g_LogType = LOG_NO;
 
 
 /*
@@ -305,9 +306,9 @@ TASK(TaskActuator)
 	//==========================================
 	//  PWM
 	//==========================================
-	pwm_L = 0;
-	pwm_R = 0;
-	pwm_T = 0;
+	S8 pwm_L = 0;
+	S8 pwm_R = 0;
+	S8 pwm_T = 0;
 
 	//==========================================
 	//	Calculate PWM of right & left motor
@@ -417,7 +418,7 @@ static U32 g_LightAve = 0;
 //--------------------------------------------------------------------
 TASK(TaskSensor)
 {
-	U8 i = 0;
+	//U8 i = 0;
 
 	//==========================================
 	//	Data Update of Sensor
@@ -666,7 +667,7 @@ void InitNXT()
 	//g_Controller.speed = 0;
 	g_Controller.forward = 0;
 	g_Controller.turn = 0;
-	g_Controller.Standmode = NO_STAND_MODE;
+	g_Controller.StandMode = NO_STAND_MODE;
 	g_Controller.PIDmode = NO_PID_MODE;
 	g_Controller.target_tail = 0;
 	//g_Controller.tail_run_speed = 0;
@@ -791,7 +792,7 @@ State_t EventSensor(){
 	//--------------------------------
 	//	Event:sonar
 	//--------------------------------
-   	if(g_Sensor.distance < g_EventStatus.distance )
+   	if(g_Sensor.distance < g_EventStatus.target_distance )
    	{
    		tmp = setNextState(SONAR);
 	}
@@ -1071,7 +1072,7 @@ void serController(const State_t state)
 		//selecting logger
 		//@param log_type
 		case SELECT_LOGTYPE:
-			logger.type = state.value0;
+			g_LogType = state.value0;
 			break;
 
 		//set the gray_market offset

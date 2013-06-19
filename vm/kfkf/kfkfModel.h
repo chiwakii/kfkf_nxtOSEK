@@ -64,7 +64,7 @@ typedef enum EvtType
 	BT_START = 11,
 	PIVOT_TURN_END = 12,
 	BOTTLE_LEFT = 13,
-	BOTTLE_RIGHT 14
+	BOTTLE_RIGHT = 14
 }EvtType_e;
 
 
@@ -125,7 +125,7 @@ typedef struct tag_EventStatus {
 //
 void InitStateMachine(void);
 // Receive kfkf model data.
-void receive_BT(StateMachine_t statemachine);
+void receive_BT(void);
 // Return current kfkf model state.
 S16 getCurrentState(void);
 // ??
