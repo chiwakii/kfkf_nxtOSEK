@@ -16,11 +16,11 @@ USER_LIB = nxtway_gs_balancer
 TARGET_SOURCES := \
 	Main.c \
 	balancer_param.c \
-	statics/kfkfModel.c
+	kfkf/kfkfModel.c
 	
 
 # OSEK OIL file
-TOPPERS_OSEK_OIL_SOURCE = ./task_cycle.oil
+TOPPERS_OSEK_OIL_SOURCE = task_cycle.oil
 
 # Don't modify below part
 O_PATH ?= build
