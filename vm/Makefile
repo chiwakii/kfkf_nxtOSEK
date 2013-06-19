@@ -1,5 +1,5 @@
 # Target specific macros
-TARGET = TASK_CYCLE
+TARGET = KFKF_MODEL
 
 #NXT_OSEK_ROOT = /cygwin/nxtOSEK
 NXT_OSEK_ROOT = /cygdrive/c/cygwin/nxtOSEK
@@ -13,10 +13,10 @@ USER_LIB = nxtway_gs_balancer
 
 
 # User applicaion source
-TARGET_SOURCES = \
+TARGET_SOURCES := \
 	Main.c \
 	balancer_param.c \
-	./statics/kfkfModel.c
+	statics/kfkfModel.c
 	
 
 # OSEK OIL file
