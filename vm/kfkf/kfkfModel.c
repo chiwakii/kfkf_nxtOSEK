@@ -202,6 +202,10 @@ S16 getCurrentState()
 	return g_StateMachine.current_state;
 }
 
+ActType_e getCurrentAct(void)
+{
+	return g_StateMachine.states[g_StateMachine.current_state].action_no;
+}
 /*
 ===============================================================================================
 	name: set_NextState(befote:sendevent)
@@ -212,10 +216,9 @@ S16 getCurrentState()
 */
 #define NO_STATE -1
 
-State_t setNextState(EvtType_e event_id) {
+void setNextState(EvtType_e event_id) {
 	S8 next_state = NO_STATE;
 	//S16 i = 0;
-	State_t state = {-1,-1,0,0,0,0};
 
 	//if(g_StateMachine.events != NULL)
 	//{
@@ -225,7 +228,6 @@ State_t setNextState(EvtType_e event_id) {
 	if(next_state != NO_STATE)
 	{
 		g_StateMachine.current_state = next_state;
-		state = g_StateMachine.states[g_StateMachine.current_state];
 	}
 
 /*
@@ -236,7 +238,7 @@ State_t setNextState(EvtType_e event_id) {
 		}
 	}
 */
-	return state;
+
 }
 
 /*

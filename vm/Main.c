@@ -50,18 +50,18 @@ typedef enum _MainTaskState
 ===============================================================================================
 */
 //
-void InitNXT();
+void InitNXT(void);
 //
-State_t EventSensor();
+void EventSensor(void);
 //
-void setController(State_t state);
+void setController(void);
 
 //void gyro_calibration();
 //void calibration(int *black,int *white,int *gray);
 //void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R);
 S16 calcAngle2Encoder(S16 ang);
 //S8 calc_variance(U16 *buf,int _len);
-void TailStand();
+void TailStand(void);
 
 
 
@@ -364,7 +364,8 @@ TASK(TaskMain)
 		//	kfkf Model
 		//==========================================
 		case ACTION:
-			setController( EventSensor() );
+			EventSensor()
+			setController();
 
 			if( ecrobot_is_ENTER_button_pressed() == ON )
 			{
@@ -805,21 +806,19 @@ void InitNXT()
 	Return Value: no
 ===============================================================================================
 */
-State_t EventSensor(){
-
-	State_t tmp;
+void EventSensor(){
 
 	//--------------------------------
 	//	Event:auto
 	//--------------------------------
-	tmp = setNextState(AUTO);
+	setNextState(AUTO);
 
 	//--------------------------------
 	//	Event:touch
 	//--------------------------------
 	if(g_Sensor.touch == ON && g_EventStatus.touch_status == OFF)
 	{
-		tmp = setNextState(TOUCH);
+		setNextState(TOUCH);
 		g_EventStatus.touch_status = ON;
 	}
 	else if(g_Sensor.touch == OFF && g_EventStatus.touch_status == ON)
@@ -835,7 +834,7 @@ State_t EventSensor(){
 		//--------------------------------
 		//	Event:black
 		//--------------------------------
-		tmp = setNextState(BLACK);
+		setNextState(BLACK);
 		g_EventStatus.light_status = LIGHT_STATUS_BLACK;
 	}
 	else if(g_Sensor.light < (g_Sensor.white + 50) && g_EventStatus.light_status != LIGHT_STATUS_WHITE)
@@ -843,7 +842,7 @@ State_t EventSensor(){
 		//--------------------------------
 		//	Event:white
 		//--------------------------------
-		tmp = setNextState(WHITE);
+		setNextState(WHITE);
 		g_EventStatus.light_status = LIGHT_STATUS_WHITE;
 	}
 	else
@@ -857,7 +856,7 @@ State_t EventSensor(){
 	//if( g_Sensor.light_ave > g_Controller.gray_offset ){
 	if( g_Controller.gray_offset - 10 < g_Sensor.light_ave && g_Sensor.light_ave < g_Controller.gray_offset + 10  )
 	{
-		tmp = setNextState(GRAY_MARKER);
+		setNextState(GRAY_MARKER);
 		g_Controller.PIDmode = WG_PID;
 	}
 	else
@@ -870,7 +869,7 @@ State_t EventSensor(){
 	//--------------------------------
 	if( abs(g_Sensor.gyro - g_Sensor.gyro_offset) > g_Controller.step_offset	)
 	{
-		tmp = setNextState(STEP);
+		setNextState(STEP);
 	}
 
 	//--------------------------------
@@ -878,7 +877,7 @@ State_t EventSensor(){
 	//--------------------------------
    	if(g_Sensor.distance < g_EventStatus.target_distance )
    	{
-   		tmp = setNextState(SONAR);
+   		setNextState(SONAR);
 	}
 
 	//--------------------------------
@@ -886,7 +885,7 @@ State_t EventSensor(){
 	//--------------------------------
 	if( (systick_get_ms() - g_EventStatus.start_time) > g_EventStatus.target_time && g_EventStatus.timer_flag == ON)
 	{
-		tmp = setNextState(TIMER);
+		setNextState(TIMER);
 		g_EventStatus.target_time = 0;
 		g_EventStatus.start_time = 0;
 		g_EventStatus.timer_flag = OFF;
@@ -899,7 +898,7 @@ State_t EventSensor(){
 	//int motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
 	if(abs(motor_count - g_EventStatus.start_motor_count) > abs(g_EventStatus.target_motor_count) && g_EventStatus.motor_counter_flag == ON )
 	{
-		tmp = setNextState(MOTOR_COUNT);
+		setNextState(MOTOR_COUNT);
 		g_EventStatus.target_motor_count = 0;
 		g_EventStatus.start_motor_count = 0;
 		g_EventStatus.motor_counter_flag = OFF;
@@ -911,7 +910,7 @@ State_t EventSensor(){
 	U8 bts = BluetoothStart();
 	if(g_EventStatus.BTstart == OFF && bts == ON)
 	{
-		tmp = setNextState(BT_START);
+		setNextState(BT_START);
 		g_EventStatus.BTstart = ON;
 	}
 	else if(g_EventStatus.BTstart == ON && bts == OFF)
@@ -924,7 +923,7 @@ State_t EventSensor(){
 	//--------------------------------
 	if( g_EventStatus.pivot_turn_flag == ON && abs(g_Sensor.count_right - g_EventStatus.start_pivot_turn_encoder_R) > g_EventStatus.target_pivot_turn_angle_R )
 	{
-		tmp = setNextState(PIVOT_TURN_END);
+		setNextState(PIVOT_TURN_END);
 		g_EventStatus.pivot_turn_flag = OFF;
 	}
 
@@ -945,20 +944,19 @@ State_t EventSensor(){
 			//--------------------------------
 			//	Event:bottle is right
 			//--------------------------------
-			tmp = setNextState(BOTTLE_RIGHT);
+			setNextState(BOTTLE_RIGHT);
 		}
 		else if(g_Sensor.bottle_is_right == OFF && g_Sensor.bottle_is_left == ON)
 		{
 			//--------------------------------
 			//	Event:bottle is left
 			//--------------------------------
-			tmp = setNextState(BOTTLE_LEFT);
+			setNextState(BOTTLE_LEFT);
 		}
 
 		g_EventStatus.bottle_judge = ON;
 	}
 
-	return tmp;
 }
 
 
@@ -995,15 +993,10 @@ State_t EventSensor(){
 	Return Value: no
 ===============================================================================================
 */
-void setController(State_t state)
+void setController(void)
 {
-	display_clear(0);
-    display_goto_xy(0, 1);
-    display_string("stNum:");
-    display_int((int)state.action_no,4);
-    display_update();
 
-	switch(state.action_no)
+	switch( getCurrentAct() )
 	{
 		case DO_NOTHING://do nothing
 			//g_Controller.speed = 0;

@@ -125,8 +125,10 @@ void InitKFKF(void);
 U8 ReceiveBT(void);
 // Return current kfkf model state.
 S16 getCurrentState(void);
+//
+ActType_e getCurrentAct(void);
 // ??
-State_t setNextState(EvtType_e event_id);
+void setNextState(EvtType_e event_id);
 //
 S8 BluetoothStart(void);
 
