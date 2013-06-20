@@ -142,7 +142,7 @@ void ecrobot_device_terminate(){
 	/* Bluetooth device Termination */
 	ecrobot_term_bt_connection();
 
-	InitNXT();
+	//InitNXT();
 }
 
 /*
@@ -364,7 +364,7 @@ TASK(TaskMain)
 		//	kfkf Model
 		//==========================================
 		case ACTION:
-			EventSensor()
+			EventSensor();
 			setController();
 
 			if( ecrobot_is_ENTER_button_pressed() == ON )
@@ -763,7 +763,7 @@ void InitNXT()
 	g_Controller.I_gain = 0.0;
 	g_Controller.D_gain = 0.0;
 
-	g_Controller.TP_gain = 0.5;
+	g_Controller.TP_gain = 0.8;
 	g_Controller.TD_gain = 1.0;
 
 	g_Controller.color_threshold = g_Sensor.target_gray;
@@ -811,14 +811,14 @@ void EventSensor(){
 	//--------------------------------
 	//	Event:auto
 	//--------------------------------
-	setNextState(AUTO);
+	setEvent(AUTO);
 
 	//--------------------------------
 	//	Event:touch
 	//--------------------------------
 	if(g_Sensor.touch == ON && g_EventStatus.touch_status == OFF)
 	{
-		setNextState(TOUCH);
+		setEvent(TOUCH);
 		g_EventStatus.touch_status = ON;
 	}
 	else if(g_Sensor.touch == OFF && g_EventStatus.touch_status == ON)
@@ -834,7 +834,7 @@ void EventSensor(){
 		//--------------------------------
 		//	Event:black
 		//--------------------------------
-		setNextState(BLACK);
+		setEvent(BLACK);
 		g_EventStatus.light_status = LIGHT_STATUS_BLACK;
 	}
 	else if(g_Sensor.light < (g_Sensor.white + 50) && g_EventStatus.light_status != LIGHT_STATUS_WHITE)
@@ -842,7 +842,7 @@ void EventSensor(){
 		//--------------------------------
 		//	Event:white
 		//--------------------------------
-		setNextState(WHITE);
+		setEvent(WHITE);
 		g_EventStatus.light_status = LIGHT_STATUS_WHITE;
 	}
 	else
@@ -856,7 +856,7 @@ void EventSensor(){
 	//if( g_Sensor.light_ave > g_Controller.gray_offset ){
 	if( g_Controller.gray_offset - 10 < g_Sensor.light_ave && g_Sensor.light_ave < g_Controller.gray_offset + 10  )
 	{
-		setNextState(GRAY_MARKER);
+		setEvent(GRAY_MARKER);
 		g_Controller.PIDmode = WG_PID;
 	}
 	else
@@ -869,7 +869,7 @@ void EventSensor(){
 	//--------------------------------
 	if( abs(g_Sensor.gyro - g_Sensor.gyro_offset) > g_Controller.step_offset	)
 	{
-		setNextState(STEP);
+		setEvent(STEP);
 	}
 
 	//--------------------------------
@@ -877,7 +877,7 @@ void EventSensor(){
 	//--------------------------------
    	if(g_Sensor.distance < g_EventStatus.target_distance )
    	{
-   		setNextState(SONAR);
+   		setEvent(SONAR);
 	}
 
 	//--------------------------------
@@ -885,7 +885,7 @@ void EventSensor(){
 	//--------------------------------
 	if( (systick_get_ms() - g_EventStatus.start_time) > g_EventStatus.target_time && g_EventStatus.timer_flag == ON)
 	{
-		setNextState(TIMER);
+		setEvent(TIMER);
 		g_EventStatus.target_time = 0;
 		g_EventStatus.start_time = 0;
 		g_EventStatus.timer_flag = OFF;
@@ -898,7 +898,7 @@ void EventSensor(){
 	//int motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
 	if(abs(motor_count - g_EventStatus.start_motor_count) > abs(g_EventStatus.target_motor_count) && g_EventStatus.motor_counter_flag == ON )
 	{
-		setNextState(MOTOR_COUNT);
+		setEvent(MOTOR_COUNT);
 		g_EventStatus.target_motor_count = 0;
 		g_EventStatus.start_motor_count = 0;
 		g_EventStatus.motor_counter_flag = OFF;
@@ -910,7 +910,7 @@ void EventSensor(){
 	U8 bts = BluetoothStart();
 	if(g_EventStatus.BTstart == OFF && bts == ON)
 	{
-		setNextState(BT_START);
+		setEvent(BT_START);
 		g_EventStatus.BTstart = ON;
 	}
 	else if(g_EventStatus.BTstart == ON && bts == OFF)
@@ -923,7 +923,7 @@ void EventSensor(){
 	//--------------------------------
 	if( g_EventStatus.pivot_turn_flag == ON && abs(g_Sensor.count_right - g_EventStatus.start_pivot_turn_encoder_R) > g_EventStatus.target_pivot_turn_angle_R )
 	{
-		setNextState(PIVOT_TURN_END);
+		setEvent(PIVOT_TURN_END);
 		g_EventStatus.pivot_turn_flag = OFF;
 	}
 
@@ -944,18 +944,21 @@ void EventSensor(){
 			//--------------------------------
 			//	Event:bottle is right
 			//--------------------------------
-			setNextState(BOTTLE_RIGHT);
+			setEvent(BOTTLE_RIGHT);
 		}
 		else if(g_Sensor.bottle_is_right == OFF && g_Sensor.bottle_is_left == ON)
 		{
 			//--------------------------------
 			//	Event:bottle is left
 			//--------------------------------
-			setNextState(BOTTLE_LEFT);
+			setEvent(BOTTLE_LEFT);
 		}
 
 		g_EventStatus.bottle_judge = ON;
 	}
+
+	//
+	setNextState();
 
 }
 

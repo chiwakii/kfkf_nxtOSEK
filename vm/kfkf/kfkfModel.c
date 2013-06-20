@@ -30,6 +30,7 @@ typedef struct tag_StateMachine {
 	EvtType_e *events;
 	State_t *states;
 	S16 current_state;
+	U8 *event_array;
 } StateMachine_t;
 
 /*
@@ -41,7 +42,6 @@ typedef struct tag_StateMachine {
 U8 bt_receive_buf[BT_RCV_BUF_SIZE];
 /* State Machine for kfkf Model */
 static StateMachine_t g_StateMachine;
-
 
 /*
 ===============================================================================================
@@ -132,11 +132,14 @@ U8 ReceiveBT(void){
         	comm_end++;
         }
 
-        g_StateMachine.current_state = 0;
-
         if(comm_end >= 2)
         {
         	comm_end = ON;
+
+        	g_StateMachine.current_state = 0;
+
+        	g_StateMachine.event_array = (U8 *)malloc( sizeof(U8) * g_StateMachine.num_of_events );
+        	clearEvent();
         }
     }
 
@@ -206,6 +209,22 @@ State_t getCurrentState(void)
 {
 	return g_StateMachine.states[g_StateMachine.current_state];
 }
+
+
+void setEvent(EvtType_e event_id)
+{
+	g_StateMachine.event_array[(U16)event_id] = ON;
+}
+
+void clearEvent(void)
+{
+	U16 i = 0;
+
+	for(i=0;i<g_StateMachine.num_of_events;i++){
+		g_StateMachine.event_array[i] = OFF;
+	}
+}
+
 /*
 ===============================================================================================
 	name: set_NextState(befote:sendevent)
@@ -216,28 +235,26 @@ State_t getCurrentState(void)
 */
 #define NO_STATE -1
 
-void setNextState(EvtType_e event_id) {
+void setNextState(void) {
 	S8 next_state = NO_STATE;
-	//S16 i = 0;
+	S16 i = 0;
 
-	//if(g_StateMachine.events != NULL)
-	//{
-		next_state = g_StateMachine.events[event_id + g_StateMachine.current_state * g_StateMachine.num_of_events];
-	//}
+	for(i=0;i<g_StateMachine.num_of_events;i++){
 
-	if(next_state != NO_STATE)
-	{
-		g_StateMachine.current_state = next_state;
-	}
+		if( g_StateMachine.event_array[i] == ON)
+		{
+			next_state = g_StateMachine.events[i + g_StateMachine.current_state * g_StateMachine.num_of_events];
 
-/*
-	for(i = 0;i < g_StateMachine.num_of_states;i++) {
-		if(i == g_StateMachine.current_state) {
-			ControllerSet(&g_StateMachine.states[i]);
-			return 1;
+			if(next_state != NO_STATE)
+			{
+				g_StateMachine.current_state = next_state;
+			}
+
 		}
+
 	}
-*/
+
+	clearEvent();
 
 }
 
@@ -282,16 +299,20 @@ void InitKFKF(void)
 	//==========================================
 	//	Initialization of StateMachine
 	//==========================================
-	g_StateMachine.num_of_events = 0;
-	g_StateMachine.num_of_states = 0;
-	g_StateMachine.current_state = 0;
-
 	free( g_StateMachine.events );
 	//g_StateMachine.events = NULL;
 
 	free( g_StateMachine.states );
 	//g_StateMachine.states = NULL;
 
+	for(i=0;i<g_StateMachine.num_of_events;i++){
+		g_StateMachine.event_array[i] = -1;
+	}
+	free( g_StateMachine.event_array );
+
+	g_StateMachine.num_of_events = 0;
+	g_StateMachine.num_of_states = 0;
+	g_StateMachine.current_state = 0;
 
 	//==========================================
 	//	Initialization of others

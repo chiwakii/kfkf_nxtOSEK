@@ -47,7 +47,6 @@ typedef enum ActType
 
 typedef enum EvtType
 {
-	NO = -1,
 	AUTO = 0,
 	TOUCH = 1,
 	WHITE = 2,
@@ -127,8 +126,12 @@ U8 ReceiveBT(void);
 S16 getCurrentStateNum(void);
 //
 State_t getCurrentState(void);
+//
+void setEvent(EvtType_e event_id);
+//
+void clearEvent(void);
 // ??
-void setNextState(EvtType_e event_id);
+void setNextState(void);
 //
 S8 BluetoothStart(void);
 

@@ -52,9 +52,9 @@ typedef struct tag_Controller
 	
 	U16 step_offset;
 
-	U32 target_tail;
-	U32 tail_dif;
-	U32 tail_pre_dif;
+	U8 target_tail;
+	S16 tail_dif;
+	S16 tail_pre_dif;
 	F32 TP_gain;
 	F32 TD_gain;
 
