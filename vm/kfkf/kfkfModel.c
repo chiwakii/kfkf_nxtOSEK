@@ -80,13 +80,16 @@ void ReceiveBT(void){
 
     display_clear(0);
     display_goto_xy(0, 1);
-    display_string("BT Communication");
+    display_string("Pre:Bluetooth");
     display_update();
+    ecrobot_sound_tone(8800, 50, 30);
     
 // packet type:1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     while(1){
     	// Receive first packet.
+    	systick_wait_ms(100);
+
         ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 		
         if(bt_receive_buf[0] == packet_no && bt_receive_buf[1] == 1)
@@ -103,9 +106,9 @@ void ReceiveBT(void){
 
     display_clear(0);
     display_goto_xy(0, 1);
-    display_string("BT Communication");
-    display_goto_xy(1, 1);
-    display_string("receive packet:event");
+    display_string("Pre:Bluetooth");
+    display_goto_xy(0, 2);
+    display_string("packet:event");
     display_update();
 
     ptr = 0;
@@ -137,9 +140,9 @@ void ReceiveBT(void){
     {
         display_clear(0);
         display_goto_xy(0, 1);
-        display_string("BT Communication");
-        display_goto_xy(1, 1);
-        display_string("Malloc Error:event");
+        display_string("Pre:Bluetooth");
+        display_goto_xy(0, 2);
+        display_string("Malloc Err:event");
         display_update();
     }
 
@@ -153,11 +156,11 @@ void ReceiveBT(void){
 
     display_clear(0);
     display_goto_xy(0, 1);
-    display_string("BT Communication");
-    display_goto_xy(1, 1);
+    display_string("Pre:Bluetooth");
+    display_goto_xy(0, 2);
     display_string("end packet:event");
-    display_goto_xy(2, 1);
-    display_string("receive packet:state");
+    display_goto_xy(0, 3);
+    display_string("packet:state");
     display_update();
 
     ptr = 0;
@@ -167,11 +170,11 @@ void ReceiveBT(void){
     {
         display_clear(0);
         display_goto_xy(0, 1);
-        display_string("BT Communication");
-        display_goto_xy(1, 1);
+        display_string("Pre:Bluetooth");
+        display_goto_xy(0, 2);
         display_string("end packet:event");
-        display_goto_xy(2, 1);
-        display_string("Malloc Error:state");
+        display_goto_xy(0, 3);
+        display_string("Malloc Err:state");
         display_update();
     }
 
@@ -212,10 +215,10 @@ void ReceiveBT(void){
 
     display_clear(0);
     display_goto_xy(0, 1);
-    display_string("BT Communication");
-    display_goto_xy(1, 1);
+    display_string("Pre:Bluetooth");
+    display_goto_xy(0, 2);
     display_string("end packet:event");
-    display_goto_xy(2, 1);
+    display_goto_xy(0, 3);
     display_string("end packet:state");
     display_update();
 
@@ -251,7 +254,10 @@ State_t setNextState(EvtType_e event_id) {
 	//S16 i = 0;
 	State_t state = {-1,-1,0,0,0,0};
 
-	next_state = g_StateMachine.events[event_id + g_StateMachine.current_state * g_StateMachine.num_of_events];
+	if(g_StateMachine.events != NULL)
+	{
+		next_state = g_StateMachine.events[event_id + g_StateMachine.current_state * g_StateMachine.num_of_events];
+	}
 
 	if(next_state != NO_STATE)
 	{

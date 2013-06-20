@@ -182,10 +182,10 @@ TASK(TaskMain)
 		//	Initialization
 		//==========================================
 		case INIT:
-			display_clear(0);
-			display_goto_xy(0, 1);
-			display_string("Robot Start");
-			display_update();
+			//display_clear(0);
+			//display_goto_xy(0, 0);
+			//display_string("Preparation");
+			//display_update();
 			InitNXT();
 
 			/* Transition:Auto */
@@ -207,7 +207,11 @@ TASK(TaskMain)
 		//	Calibration of gray color & gyro offset
 		//==========================================
 		case TARGETCALIB:
-			if( g_Sensor.touch == ON ) g_CalibFlag = ON;
+			if( g_Sensor.touch == ON )
+			{
+				ecrobot_sound_tone(8800, 50, 30);
+				g_CalibFlag = ON;
+			}
 
 			if(g_CalibFlag == ON)
 			{
@@ -235,7 +239,11 @@ TASK(TaskMain)
 		//	Calibration of white color
 		//==========================================
 		case WHITECALIB:
-			if( g_Sensor.touch == ON ) g_CalibFlag = ON;
+			if( g_Sensor.touch == ON )
+			{
+				ecrobot_sound_tone(8800, 50, 30);
+				g_CalibFlag = ON;
+			}
 
 			if(g_CalibFlag == ON)
 			{
@@ -259,7 +267,11 @@ TASK(TaskMain)
 		//	Calibration of black color
 		//==========================================
 		case BLACKCALIB:
-			if( g_Sensor.touch == ON ) g_CalibFlag = ON;
+			if( g_Sensor.touch == ON )
+			{
+				ecrobot_sound_tone(8800, 50, 30);
+				g_CalibFlag = ON;
+			}
 
 			if( g_CalibFlag == ON )
 			{
@@ -336,9 +348,6 @@ TASK(TaskActuator)
 				+ g_Controller.I_gain * g_Controller.integral
 				+ g_Controller.D_gain * g_Controller.differential;
 	}
-
-	g_Controller.tail_pre_dif = g_Controller.tail_dif;
-	g_Controller.tail_dif = g_Controller.target_tail - g_Sensor.count_tail;
 	
 	if( g_Controller.StandMode == BALANCE )
 	{
@@ -375,6 +384,9 @@ TASK(TaskActuator)
 	//==========================================
 	//	Calculate PWM of tail motor
 	//==========================================
+	g_Controller.tail_pre_dif = g_Controller.tail_dif;
+	g_Controller.tail_dif = g_Controller.target_tail - g_Sensor.count_tail;
+
 	//g_pwm_T = (U8)( g_Controller.TP_gain * g_Controller.tail_dif + g_Controller.TD_gain * (g_Controller.tail_pre_dif - g_Controller.tail_dif) );
 	g_pwm_T = (U8)( g_Controller.TP_gain * g_Controller.tail_dif );
 
