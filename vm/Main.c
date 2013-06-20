@@ -59,7 +59,7 @@ void setController(void);
 //void gyro_calibration();
 //void calibration(int *black,int *white,int *gray);
 //void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R);
-S16 calcAngle2Encoder(S16 ang);
+U16 calcAngle2Encoder(S16 ang);
 //S8 calc_variance(U16 *buf,int _len);
 void TailStand(void);
 
@@ -85,7 +85,7 @@ static Sensor_t g_Sensor;
 /* Controller */
 static Controller_t g_Controller;
 /* Event status */
-static EventStatus_t g_EventStatus = {NO,0,0,NO,0,0,NO,0,0,NO,NO,0,0,NO,NO,0,0,NO};
+static EventStatus_t g_EventStatus = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 //--------------------------------------------------------------------
 //	For logging
@@ -457,8 +457,8 @@ TASK(TaskActuator)
 	g_Controller.tail_pre_dif = g_Controller.tail_dif;
 	g_Controller.tail_dif = g_Controller.target_tail - g_Sensor.count_tail;
 
-	//g_pwm_T = (U8)( g_Controller.TP_gain * g_Controller.tail_dif + g_Controller.TD_gain * (g_Controller.tail_pre_dif - g_Controller.tail_dif) );
-	g_pwm_T = (U8)( g_Controller.TP_gain * g_Controller.tail_dif );
+	//g_pwm_T = (S8)( g_Controller.TP_gain * g_Controller.tail_dif + g_Controller.TD_gain * (g_Controller.tail_pre_dif - g_Controller.tail_dif) );
+	g_pwm_T = (S8)( g_Controller.TP_gain * g_Controller.tail_dif );
 
 	if(g_pwm_T > 100)
 	{
@@ -921,10 +921,13 @@ void EventSensor(){
 	//--------------------------------
 	//	Event:pivot turn
 	//--------------------------------
-	if( g_EventStatus.pivot_turn_flag == ON && abs(g_Sensor.count_right - g_EventStatus.start_pivot_turn_encoder_R) > g_EventStatus.target_pivot_turn_angle_R )
+	if( g_EventStatus.pivot_turn_flag == ON  )
 	{
-		setEvent(PIVOT_TURN_END);
-		g_EventStatus.pivot_turn_flag = OFF;
+		if( abs(g_Sensor.count_right - g_EventStatus.start_pivot_turn_encoder_R) >= g_EventStatus.target_pivot_turn_angle_R )
+		{
+			setEvent(PIVOT_TURN_END);
+			g_EventStatus.pivot_turn_flag = OFF;
+		}
 	}
 
 
@@ -1139,7 +1142,7 @@ void setController(void)
 				g_Controller.turn = -(state.value1);
 			}*/
 
-			if( state.value0 > 0 )
+			if( state.value0 >= 0 )
 			{
 				g_Controller.turn = state.value1;
 			}
@@ -1263,9 +1266,10 @@ void tail_run_turn2pwm(S16 tail_run_speed ,float turn ,S8 *_pwm_L, S8 *_pwm_R)
 	Description: ??
 ===============================================================================================
 */
-S16 calcAngle2Encoder(S16 ang){
-	S16 ret = (S16)((F32)ang*16.3/8.1);
-	if(ret < 0) ret *= -1;
+U16 calcAngle2Encoder(S16 ang)
+{
+	U16 ret = 0;
+	ret = (U16)( abs(ang * 16.3 / 8.1) );
 
 	return ret;
 }

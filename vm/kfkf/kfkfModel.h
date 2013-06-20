@@ -104,8 +104,8 @@ typedef struct tag_EventStatus
 	U8 BTstart;
 
 	U8 pivot_turn_flag;
-	S32 start_pivot_turn_encoder_R;
-	S32 target_pivot_turn_angle_R;
+	int start_pivot_turn_encoder_R;
+	U16 target_pivot_turn_angle_R;
 
 	U8 bottle_left_flag;
 	U8 bottle_right_flag;

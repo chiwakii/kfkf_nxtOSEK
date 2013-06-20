@@ -39,7 +39,7 @@ typedef struct tag_StateMachine {
 ===============================================================================================
 */
 /* Buffer for Bluetooth */
-U8 bt_receive_buf[BT_RCV_BUF_SIZE];
+S16 bt_receive_buf[BT_RCV_BUF_SIZE];
 /* State Machine for kfkf Model */
 static StateMachine_t g_StateMachine;
 
@@ -56,9 +56,9 @@ static StateMachine_t g_StateMachine;
 	Return Value: no
 ===============================================================================================
 */
-static U16 g_PacketCnt;
-static U16 g_Eptr;
-static U16 g_Sptr;
+static U16 g_PacketCnt = 1;
+static U16 g_Eptr = 0;
+static U16 g_Sptr = 0;
 
 static S16 events[RESERVED_EVENT_SIZE];
 static S16 states[RESERVED_STATES_SIZE];
@@ -117,8 +117,9 @@ U8 ReceiveBT(void){
         }
         else
         {
-        	j = 0;
-        	for(i=0;i<g_Sptr;i=i+6)
+
+        	i = 0;
+        	for(j=0;j<g_StateMachine.num_of_states;j++)
         	{
         		g_StateMachine.states[j].state_no = states[i];
         		g_StateMachine.states[j].action_no = (ActType_e)states[i+1];
@@ -126,7 +127,7 @@ U8 ReceiveBT(void){
        			g_StateMachine.states[j].value1 = states[i+3];
        			g_StateMachine.states[j].value2 = states[i+4];
        			g_StateMachine.states[j].value3 = states[i+5];
-       			j++;
+       			i = i + 6;
        		}
 
         	comm_end++;
@@ -161,7 +162,8 @@ U8 ReceiveBT(void){
     {
     	for(i=2;i<16;i++)
     	{
-    		*(events + g_Eptr) = *(bt_receive_buf + i);
+    		//*(events + g_Eptr) = *(bt_receive_buf + i);
+    		events[g_Eptr] = bt_receive_buf[i];
     		g_Eptr++;
     	}
 
@@ -175,7 +177,8 @@ U8 ReceiveBT(void){
     {
     	for(i=2;i<16;i++)
     	{
-    		*(states + g_Sptr) = *(bt_receive_buf + i);
+    		//*(states + g_Sptr) = *(bt_receive_buf + i);
+    		states[g_Sptr] = bt_receive_buf[i];
     		g_Sptr++;
     	}
 
@@ -254,6 +257,11 @@ void setNextState(void) {
 
 	}
 
+    display_clear(0);
+	display_goto_xy(0, 0);
+	display_string("Prep:TRUE");
+	display_int(,);
+    display_update();
 	clearEvent();
 
 }
@@ -306,7 +314,7 @@ void InitKFKF(void)
 	//g_StateMachine.states = NULL;
 
 	for(i=0;i<g_StateMachine.num_of_events;i++){
-		g_StateMachine.event_array[i] = -1;
+		g_StateMachine.event_array[i] = OFF;
 	}
 	free( g_StateMachine.event_array );
 

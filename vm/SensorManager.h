@@ -23,9 +23,9 @@ typedef struct tag_Sensor
 
 	U8 touch;
 	S32 distance;
-	S32 count_left;
-	S32 count_right;
-	S32 count_tail;
+	int count_left;
+	int count_right;
+	int count_tail;
 	U16 battery;
 
 	U8 bottle_is_left;
