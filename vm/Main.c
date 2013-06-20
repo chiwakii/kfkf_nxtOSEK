@@ -620,7 +620,7 @@ TASK(TaskLogger)
 	switch(g_LogType)
 	{
 		case LOG_STATE:
-			ecrobot_bt_data_logger( (S8)getCurrentState(), 0 );
+			ecrobot_bt_data_logger( (S8)getCurrentStateNum(), 0 );
 			break;
 
 		case LOG_TURN:
@@ -995,8 +995,9 @@ void EventSensor(){
 */
 void setController(void)
 {
+	State_t state = getCurrentState();
 
-	switch( getCurrentAct() )
+	switch( state.action_no )
 	{
 		case DO_NOTHING://do nothing
 			//g_Controller.speed = 0;

@@ -191,20 +191,20 @@ U8 ReceiveBT(void){
 
 /*
 ===============================================================================================
-	name: get_CurrentState
+	name: getCurrentStateNum
 	Description: ??
 	Parameter: no
 	Return Value: g_StateMachine.current_state
 ===============================================================================================
 */
-S16 getCurrentState()
+S16 getCurrentStateNum()
 {
 	return g_StateMachine.current_state;
 }
 
-ActType_e getCurrentAct(void)
+State_t getCurrentState(void)
 {
-	return g_StateMachine.states[g_StateMachine.current_state].action_no;
+	return g_StateMachine.states[g_StateMachine.current_state];
 }
 /*
 ===============================================================================================

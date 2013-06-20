@@ -124,9 +124,9 @@ void InitKFKF(void);
 // Receive kfkf model data.
 U8 ReceiveBT(void);
 // Return current kfkf model state.
-S16 getCurrentState(void);
+S16 getCurrentStateNum(void);
 //
-ActType_e getCurrentAct(void);
+State_t getCurrentState(void);
 // ??
 void setNextState(EvtType_e event_id);
 //
