@@ -38,7 +38,7 @@ typedef struct tag_StateMachine {
 ===============================================================================================
 */
 /* Buffer for Bluetooth */
-static S16 bt_receive_buf[BT_RCV_BUF_SIZE];
+S16 bt_receive_buf[BT_RCV_BUF_SIZE];
 /* State Machine for kfkf Model */
 static StateMachine_t g_StateMachine;
 
