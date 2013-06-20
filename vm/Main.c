@@ -883,7 +883,7 @@ State_t EventSensor(){
 
 /*
 ===============================================================================================
-	name: serController
+	name: setController
 	Description: ??
 		Action
 		ID description
@@ -914,7 +914,7 @@ State_t EventSensor(){
 	Return Value: no
 ===============================================================================================
 */
-void serController(const State_t state)
+void setController(const State_t state)
 {
 	switch(state.action_no)
 	{
