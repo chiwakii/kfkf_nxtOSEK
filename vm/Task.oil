@@ -16,10 +16,12 @@ CPU ATMEL_AT91SAM7S256
 
   APPMODE appmode1{};
 
-
   TASK TaskMain
   {
-    AUTOSTART = TRUE { APPMODE = appmode1; };
+    AUTOSTART = TRUE
+    { 
+    	APPMODE = appmode1;
+    };
     PRIORITY = 4;
     ACTIVATION = 1;
     SCHEDULE = FULL;
@@ -28,7 +30,10 @@ CPU ATMEL_AT91SAM7S256
   
   TASK TaskSensor
   {
-    AUTOSTART = TRUE { APPMODE = appmode1; };
+    AUTOSTART = TRUE
+    {
+    	APPMODE = appmode1;
+    };
     PRIORITY = 1;
     ACTIVATION = 1;
     SCHEDULE = FULL;
@@ -37,7 +42,10 @@ CPU ATMEL_AT91SAM7S256
   
   TASK TaskActuator
   {
-    AUTOSTART = TRUE { APPMODE = appmode1; };
+    AUTOSTART = TRUE
+    {
+    	APPMODE = appmode1;
+    };
     PRIORITY = 2;
     ACTIVATION = 1;
     SCHEDULE = FULL;
@@ -46,7 +54,10 @@ CPU ATMEL_AT91SAM7S256
   
   TASK TaskLogger
   {
-    AUTOSTART = TRUE { APPMODE = appmode1; };
+    AUTOSTART = TRUE
+    {
+    	APPMODE = appmode1;
+    };
     PRIORITY = 3;
     ACTIVATION = 1;
     SCHEDULE = FULL;
@@ -82,7 +93,7 @@ CPU ATMEL_AT91SAM7S256
     {
       TASK = TaskSensor;
     };
-    AUTOSTART = FALSE
+    AUTOSTART = TRUE
     {
       ALARMTIME = 1;
       CYCLETIME = 4;
@@ -97,7 +108,7 @@ CPU ATMEL_AT91SAM7S256
     {
       TASK = TaskActuator;
     };
-    AUTOSTART = FALSE
+    AUTOSTART = TRUE
     {
       ALARMTIME = 1;
       CYCLETIME = 4;
@@ -112,7 +123,7 @@ CPU ATMEL_AT91SAM7S256
     {
       TASK = TaskLogger;
     };
-    AUTOSTART = FALSE
+    AUTOSTART = TRUE
     {
       ALARMTIME = 1;
       CYCLETIME = 10;
