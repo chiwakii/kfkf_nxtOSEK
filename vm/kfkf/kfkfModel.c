@@ -38,7 +38,7 @@ typedef struct tag_StateMachine {
 ===============================================================================================
 */
 /* Buffer for Bluetooth */
-S16 bt_receive_buf[BT_RCV_BUF_SIZE];
+U8 bt_receive_buf[BT_RCV_BUF_SIZE];
 /* State Machine for kfkf Model */
 static StateMachine_t g_StateMachine;
 
@@ -202,12 +202,12 @@ void ReceiveBT(void){
     
     for(i=0;i<ptr;i=i+6)
     {
-    	g_StateMachine[i].states.state_no = states[i];
-    	g_StateMachine[i+1].states.action_no = (ActType_e)states[i+1];
-    	g_StateMachine[i+2].states.value0 = states[i+2];
-    	g_StateMachine[i+3].states.value1 = states[i+3];
-    	g_StateMachine[i+4].states.value2 = states[i+4];
-    	g_StateMachine[i+5].states.value3 = states[i+5];
+    	g_StateMachine.states[i].state_no = states[i];
+    	g_StateMachine.states[i+1].action_no = (ActType_e)states[i+1];
+    	g_StateMachine.states[i+2].value0 = states[i+2];
+    	g_StateMachine.states[i+3].value1 = states[i+3];
+    	g_StateMachine.states[i+4].value2 = states[i+4];
+    	g_StateMachine.states[i+5].value3 = states[i+5];
     }
 
     display_clear(0);
