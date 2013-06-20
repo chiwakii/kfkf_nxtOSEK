@@ -207,7 +207,7 @@ TASK(TaskMain)
 		case BTCOMM:
 			if(ReceiveBT() == ON)
 			{
-				/*
+
 		        display_clear(0);
 				display_goto_xy(0, 0);
 				display_string("Prep:FALSE");
@@ -216,7 +216,6 @@ TASK(TaskMain)
 		        display_goto_xy(1, 2);
 		        display_string("CLBGray:FALSE");
 		        display_update();
-		        */
 		        ecrobot_sound_tone(880, 50, 30);
 
 				/* Transition:Auto */
@@ -231,7 +230,7 @@ TASK(TaskMain)
 		case TARGETCALIB:
 			if( g_Sensor.touch == ON )
 			{
-				ecrobot_sound_tone(8800, 50, 30);
+				ecrobot_sound_tone(440, 50, 30);
 				g_CalibFlag = ON;
 			}
 
@@ -277,7 +276,7 @@ TASK(TaskMain)
 		case WHITECALIB:
 			if( g_Sensor.touch == ON )
 			{
-				ecrobot_sound_tone(8800, 50, 30);
+				ecrobot_sound_tone(440, 50, 30);
 				g_CalibFlag = ON;
 			}
 
@@ -321,7 +320,7 @@ TASK(TaskMain)
 		case BLACKCALIB:
 			if( g_Sensor.touch == ON )
 			{
-				ecrobot_sound_tone(8800, 50, 30);
+				ecrobot_sound_tone(440, 50, 30);
 				g_CalibFlag = ON;
 			}
 

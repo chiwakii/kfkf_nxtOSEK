@@ -79,7 +79,7 @@ U8 ReceiveBT(void){
 		//==========================================
 		//	Allocation for events
 		//==========================================
-        g_StateMachine.events = (EvtType_e *)malloc(g_Eptr);
+        g_StateMachine.events = (EvtType_e *)malloc( sizeof(EvtType_e) * g_Eptr );
         if(g_StateMachine.events == NULL)
         {
             display_clear(0);
@@ -104,7 +104,7 @@ U8 ReceiveBT(void){
 		//==========================================
 		//	Allocation for states
 		//==========================================
-        g_StateMachine.states = (State_t *)malloc(g_StateMachine.num_of_states);
+        g_StateMachine.states = (State_t *)malloc( sizeof(State_t) * g_StateMachine.num_of_states );
         if(g_StateMachine.states == NULL)
         {
             display_clear(0);
@@ -161,6 +161,7 @@ U8 ReceiveBT(void){
     		*(events + g_Eptr) = *(bt_receive_buf + i);
     		g_Eptr++;
     	}
+
     	g_PacketCnt++;
     }
 
@@ -216,10 +217,10 @@ State_t setNextState(EvtType_e event_id) {
 	//S16 i = 0;
 	State_t state = {-1,-1,0,0,0,0};
 
-	if(g_StateMachine.events != NULL)
-	{
+	//if(g_StateMachine.events != NULL)
+	//{
 		next_state = g_StateMachine.events[event_id + g_StateMachine.current_state * g_StateMachine.num_of_events];
-	}
+	//}
 
 	if(next_state != NO_STATE)
 	{
@@ -284,10 +285,10 @@ void InitKFKF(void)
 	g_StateMachine.current_state = 0;
 
 	free( g_StateMachine.events );
-	g_StateMachine.events = NULL;
+	//g_StateMachine.events = NULL;
 
 	free( g_StateMachine.states );
-	g_StateMachine.states = NULL;
+	//g_StateMachine.states = NULL;
 
 
 	//==========================================
