@@ -1059,7 +1059,7 @@ void setController(void)
 			g_Controller.target_tail = state.value0;
 			g_Controller.forward = state.value1;
 			g_Controller.turn = state.value2;
-			g_Controller.TP_gain = state.value3 / 100;
+			g_Controller.TP_gain = (F32)state.value3 / 100;
 
 			g_Controller.PIDmode = NO_PID_MODE;
 			g_Controller.StandMode = TAIL;
@@ -1121,7 +1121,7 @@ void setController(void)
 			g_Controller.target_tail = state.value0;
 			//g_Controller.tail_run_speed = state.value1;
 			g_Controller.forward = state.value1;
-			g_Controller.TP_gain = state.value2 / 100;
+			g_Controller.TP_gain = (F32)state.value2 / 100;
 			break;
 
 		//circling
@@ -1218,7 +1218,7 @@ void setController(void)
 int calcAngle2Encoder(S16 ang)
 {
 	F32 ret = 0;
-	ret = (F32)( (F32)ang * 16.3 / 8.1 );
+	ret = (F32)ang * 16.3 / 8.1;
 
 	if(ret < 0)
 	{
