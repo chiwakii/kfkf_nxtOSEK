@@ -182,12 +182,16 @@ TASK(TaskMain)
 		//	Initialization
 		//==========================================
 		case INIT:
-			//display_clear(0);
-			//display_goto_xy(0, 0);
-			//display_string("Preparation");
-			//display_update();
-			InitNXT();
+			display_clear(0);
+			display_goto_xy(0, 0);
+			display_string("Preparation:FALSE");
+	        display_goto_xy(1, 1);
+	        display_string("BT:FALSE");
+			display_update();
+			ecrobot_sound_tone(880, 50, 30);
 
+			InitNXT();
+			TailStand();
 			/* Transition:Auto */
 			g_MTState = BTCOMM;
 			break;
@@ -196,11 +200,22 @@ TASK(TaskMain)
 		//	Bluetooth Communication
 		//==========================================
 		case BTCOMM:
-			TailStand();
-			ReceiveBT();
+			if(ReceiveBT() == ON)
+			{
+		        display_clear(0);
+				display_goto_xy(0, 0);
+				display_string("Preparation:FALSE");
+		        display_goto_xy(1, 1);
+		        display_string("BT:TRUE");
+		        display_goto_xy(1, 2);
+		        display_string("CalibGray:FALSE");
+		        display_update();
+		        ecrobot_sound_tone(880, 50, 30);
 
-			/* Transition:Auto */
-			g_MTState = TARGETCALIB;
+				/* Transition:Auto */
+				g_MTState = TARGETCALIB;
+			}
+
 			break;
 
 		//==========================================
@@ -230,6 +245,20 @@ TASK(TaskMain)
 				g_CalibLightSum = 0;
 				g_CalibCnt = 0;
 
+		        display_clear(0);
+				display_goto_xy(0, 0);
+				display_string("Preparation:FALSE");
+		        display_goto_xy(1, 1);
+		        display_string("BT:TRUE");
+		        display_goto_xy(1, 2);
+		        display_string("CalibGray:TRUE");
+		        display_goto_xy(1, 2);
+		        display_string("CalibGray:TRUE");
+		        display_goto_xy(1, 3);
+		        display_string("CalibWhite:FALSE");
+		        display_update();
+		        ecrobot_sound_tone(880, 50, 30);
+
 				/* Transition:End of the calculation for gray color & gyro offset   */
 				g_MTState = WHITECALIB;
 			}
@@ -258,6 +287,22 @@ TASK(TaskMain)
 				g_CalibLightSum = 0;
 				g_CalibCnt = 0;
 
+		        display_clear(0);
+				display_goto_xy(0, 0);
+				display_string("Preparation:FALSE");
+		        display_goto_xy(1, 1);
+		        display_string("BT:TRUE");
+		        display_goto_xy(1, 2);
+		        display_string("CalibGray:TRUE");
+		        display_goto_xy(1, 2);
+		        display_string("CalibGray:TRUE");
+		        display_goto_xy(1, 3);
+		        display_string("CalibWhite:TRUE");
+		        display_goto_xy(1, 4);
+		        display_string("CalibBlack:FALSE");
+		        display_update();
+		        ecrobot_sound_tone(880, 50, 30);
+
 				/* Transition:End of the calculation for white color   */
 				g_MTState =  BLACKCALIB;
 			}
@@ -285,6 +330,24 @@ TASK(TaskMain)
 				g_CalibFlag = OFF;
 				g_CalibLightSum = 0;
 				g_CalibCnt = 0;
+
+		        display_clear(0);
+				display_goto_xy(0, 0);
+				display_string("Preparation:TRUE");
+		        display_goto_xy(1, 1);
+		        display_string("BT:TRUE");
+		        display_goto_xy(1, 2);
+		        display_string("CalibGray:TRUE");
+		        display_goto_xy(1, 2);
+		        display_string("CalibGray:TRUE");
+		        display_goto_xy(1, 3);
+		        display_string("CalibWhite:TRUE");
+		        display_goto_xy(1, 4);
+		        display_string("CalibBlack:TRUE");
+		        display_goto_xy(0, 5);
+		        display_string("Start kfkfModel");
+		        display_update();
+		        ecrobot_sound_tone(880, 50, 30);
 
 				/* Transition:End of the calculation for black color  */
 				g_MTState = ACTION;
@@ -622,7 +685,7 @@ void InitNXT()
 	//==========================================
 	//	StateMachine
 	//==========================================
-	InitStateMachine();
+	InitKFKF();
 
 	//==========================================
 	//	Global variables

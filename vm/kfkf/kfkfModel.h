@@ -120,9 +120,9 @@ typedef struct tag_EventStatus
 //	functions
 //--------------------------------------------------------------------
 //
-void InitStateMachine(void);
+void InitKFKF(void);
 // Receive kfkf model data.
-void ReceiveBT(void);
+U8 ReceiveBT(void);
 // Return current kfkf model state.
 S16 getCurrentState(void);
 // ??
