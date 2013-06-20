@@ -56,23 +56,19 @@ static StateMachine_t g_StateMachine;
 	Return Value: no
 ===============================================================================================
 */
-static U16 g_PacketCnt = 1;
-static U16 g_Eptr = 0;
-static U16 g_Sptr = 0;
+static U16 g_PacketCnt;
+static U16 g_Eptr;
+static U16 g_Sptr;
 
-static S16 events[RESERVED_EVENT_SIZE] = {0};
-static S16 states[RESERVED_STATES_SIZE] = {0};
+static S16 events[RESERVED_EVENT_SIZE];
+static S16 states[RESERVED_STATES_SIZE];
 
 U8 ReceiveBT(void){
 	
     U16 i = 0;
+    U16 j = 0;
     U8 comm_end = OFF;
 
-    display_clear(0);
-    display_goto_xy(0, 1);
-    display_string("Pre:Bluetooth");
-    display_update();
-    
     ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 
 //-------------------------------------------------------------------------------------
@@ -121,15 +117,17 @@ U8 ReceiveBT(void){
         }
         else
         {
-        	for(i=0;i<ptr;i=i+6)
+        	j = 0;
+        	for(i=0;i<g_Sptr;i=i+6)
         	{
-        		g_StateMachine.states[i].state_no = states[i];
-        		g_StateMachine.states[i+1].action_no = (ActType_e)states[i+1];
-        		g_StateMachine.states[i+2].value0 = states[i+2];
-        		g_StateMachine.states[i+3].value1 = states[i+3];
-        		g_StateMachine.states[i+4].value2 = states[i+4];
-        		g_StateMachine.states[i+5].value3 = states[i+5];
-        	}
+        		g_StateMachine.states[j].state_no = states[i];
+        		g_StateMachine.states[j].action_no = (ActType_e)states[i+1];
+       			g_StateMachine.states[j].value0 = states[i+2];
+       			g_StateMachine.states[j].value1 = states[i+3];
+       			g_StateMachine.states[j].value2 = states[i+4];
+       			g_StateMachine.states[j].value3 = states[i+5];
+       			j++;
+       		}
 
         	comm_end++;
         }

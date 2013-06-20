@@ -20,8 +20,8 @@
 
 /* NXT motor port configuration */
 #define TAIL_MOTOR NXT_PORT_A
-#define LEFT_MOTOR NXT_PORT_B
-#define RIGHT_MOTOR NXT_PORT_C
+#define LEFT_MOTOR NXT_PORT_C
+#define RIGHT_MOTOR NXT_PORT_B
 
 #define BT_PASS_KEY		"0753"	/* Pass Key for bluetooth */
 

@@ -54,7 +54,7 @@ void InitNXT();
 //
 State_t EventSensor();
 //
-void setController(const State_t state);
+void setController(State_t state);
 
 //void gyro_calibration();
 //void calibration(int *black,int *white,int *gray);
@@ -115,6 +115,8 @@ void ecrobot_device_initialize(){
 
 	/* Bluetooth device Initialization */
 	ecrobot_init_bt_slave( BT_PASS_KEY );
+
+	InitNXT();
 }
 
 /*
@@ -139,6 +141,8 @@ void ecrobot_device_terminate(){
 
 	/* Bluetooth device Termination */
 	ecrobot_term_bt_connection();
+
+	InitNXT();
 }
 
 /*
@@ -184,7 +188,7 @@ TASK(TaskMain)
 		case INIT:
 			display_clear(0);
 			display_goto_xy(0, 0);
-			display_string("Preparation:FALSE");
+			display_string("Prep:FALSE");
 	        display_goto_xy(1, 1);
 	        display_string("BT:FALSE");
 			display_update();
@@ -192,6 +196,7 @@ TASK(TaskMain)
 
 			InitNXT();
 			TailStand();
+
 			/* Transition:Auto */
 			g_MTState = BTCOMM;
 			break;
@@ -202,14 +207,16 @@ TASK(TaskMain)
 		case BTCOMM:
 			if(ReceiveBT() == ON)
 			{
+				/*
 		        display_clear(0);
 				display_goto_xy(0, 0);
-				display_string("Preparation:FALSE");
+				display_string("Prep:FALSE");
 		        display_goto_xy(1, 1);
 		        display_string("BT:TRUE");
 		        display_goto_xy(1, 2);
-		        display_string("CalibGray:FALSE");
+		        display_string("CLBGray:FALSE");
 		        display_update();
+		        */
 		        ecrobot_sound_tone(880, 50, 30);
 
 				/* Transition:Auto */
@@ -247,15 +254,15 @@ TASK(TaskMain)
 
 		        display_clear(0);
 				display_goto_xy(0, 0);
-				display_string("Preparation:FALSE");
+				display_string("Prep:FALSE");
 		        display_goto_xy(1, 1);
 		        display_string("BT:TRUE");
 		        display_goto_xy(1, 2);
-		        display_string("CalibGray:TRUE");
+		        display_string("CLBGray:TRUE");
 		        display_goto_xy(1, 2);
-		        display_string("CalibGray:TRUE");
+		        display_string("CLBGray:TRUE");
 		        display_goto_xy(1, 3);
-		        display_string("CalibWhite:FALSE");
+		        display_string("CLBWhite:FALSE");
 		        display_update();
 		        ecrobot_sound_tone(880, 50, 30);
 
@@ -289,17 +296,17 @@ TASK(TaskMain)
 
 		        display_clear(0);
 				display_goto_xy(0, 0);
-				display_string("Preparation:FALSE");
+				display_string("Prep:FALSE");
 		        display_goto_xy(1, 1);
 		        display_string("BT:TRUE");
 		        display_goto_xy(1, 2);
-		        display_string("CalibGray:TRUE");
+		        display_string("CLBGray:TRUE");
 		        display_goto_xy(1, 2);
-		        display_string("CalibGray:TRUE");
+		        display_string("CLBGray:TRUE");
 		        display_goto_xy(1, 3);
-		        display_string("CalibWhite:TRUE");
+		        display_string("CLBWhite:TRUE");
 		        display_goto_xy(1, 4);
-		        display_string("CalibBlack:FALSE");
+		        display_string("CLBBlack:FALSE");
 		        display_update();
 		        ecrobot_sound_tone(880, 50, 30);
 
@@ -333,19 +340,19 @@ TASK(TaskMain)
 
 		        display_clear(0);
 				display_goto_xy(0, 0);
-				display_string("Preparation:TRUE");
+				display_string("Prep:TRUE");
 		        display_goto_xy(1, 1);
 		        display_string("BT:TRUE");
 		        display_goto_xy(1, 2);
-		        display_string("CalibGray:TRUE");
+		        display_string("CLBGray:TRUE");
 		        display_goto_xy(1, 2);
-		        display_string("CalibGray:TRUE");
+		        display_string("CLBGray:TRUE");
 		        display_goto_xy(1, 3);
-		        display_string("CalibWhite:TRUE");
+		        display_string("CLBWhite:TRUE");
 		        display_goto_xy(1, 4);
-		        display_string("CalibBlack:TRUE");
+		        display_string("CLBBlack:TRUE");
 		        display_goto_xy(0, 5);
-		        display_string("Start kfkfModel");
+		        display_string("kfkfModel:ON");
 		        display_update();
 		        ecrobot_sound_tone(880, 50, 30);
 
@@ -989,8 +996,14 @@ State_t EventSensor(){
 	Return Value: no
 ===============================================================================================
 */
-void setController(const State_t state)
+void setController(State_t state)
 {
+	display_clear(0);
+    display_goto_xy(0, 1);
+    display_string("stNum:");
+    display_int((int)state.action_no,4);
+    display_update();
+
 	switch(state.action_no)
 	{
 		case DO_NOTHING://do nothing
@@ -1310,5 +1323,5 @@ S8 calc_variance(U16 *buf,int _len){
 ===============================================================================================
 */
 void TailStand(){
-	g_Controller.target_tail = 90;
+	g_Controller.target_tail = 110;
 }
