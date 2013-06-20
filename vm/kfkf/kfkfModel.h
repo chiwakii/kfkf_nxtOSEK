@@ -98,8 +98,8 @@ typedef struct tag_EventStatus
 	U32 target_time;
 
 	U8 motor_counter_flag;
-	S32 start_motor_count;
-	S32 target_motor_count;
+	int start_motor_count;
+	int target_motor_count;
 
 	U8 BTstart;
 

@@ -663,7 +663,6 @@ TASK(TaskLogger)
 			break;
 
 		default:
-			ecrobot_bt_data_logger( (S8)g_pwm_L, (S8)g_pwm_R );
 			break;
 
 	}
@@ -779,6 +778,28 @@ void InitNXT()
 		g_Sensor.gyro_buffer[m] = g_Controller.gyro_offset;
 	}
 */
+
+	//==========================================
+	//	Event Status variables
+	//==========================================
+	g_EventStatus.touch_status = 0;
+	g_EventStatus.light_status = LIGHT_STATUS_GRAY;
+	g_EventStatus.target_distance = 0;
+	g_EventStatus.timer_flag = OFF;
+	g_EventStatus.start_time = 0;
+	g_EventStatus.target_time = 0;
+	g_EventStatus.motor_counter_flag = OFF;
+	g_EventStatus.start_motor_count = 0;
+	g_EventStatus.target_motor_count = 0;
+	g_EventStatus.BTstart = OFF;
+	g_EventStatus.pivot_turn_flag = OFF;
+	g_EventStatus.start_pivot_turn_encoder_R = 0;
+	g_EventStatus.target_pivot_turn_angle_R = 0;
+	g_EventStatus.bottle_left_flag = OFF;
+	g_EventStatus.bottle_right_flag = OFF;
+	g_EventStatus.bottle_left_length = 0;
+	g_EventStatus.bottle_right_length = 0;
+	g_EventStatus.bottle_judge = OFF;
 }
 
 /*
@@ -867,7 +888,7 @@ void EventSensor(){
 	//--------------------------------
 	//	Event:step
 	//--------------------------------
-	if( abs(g_Sensor.gyro - g_Sensor.gyro_offset) > g_Controller.step_offset	)
+	if( abs((int)(g_Sensor.gyro - g_Sensor.gyro_offset)) > g_Controller.step_offset	)
 	{
 		setEvent(STEP);
 	}
@@ -883,26 +904,31 @@ void EventSensor(){
 	//--------------------------------
 	//	Event:timer
 	//--------------------------------
-	if( (systick_get_ms() - g_EventStatus.start_time) > g_EventStatus.target_time && g_EventStatus.timer_flag == ON)
-	{
-		setEvent(TIMER);
-		g_EventStatus.target_time = 0;
-		g_EventStatus.start_time = 0;
-		g_EventStatus.timer_flag = OFF;
-	}
+   	if( g_EventStatus.timer_flag == ON )
+   	{
+   		if( (systick_get_ms() - g_EventStatus.start_time) > g_EventStatus.target_time )
+   		{
+   			setEvent(TIMER);
+   			g_EventStatus.target_time = 0;
+   			g_EventStatus.start_time = 0;
+   			g_EventStatus.timer_flag = OFF;
+   		}
+   	}
 
 	//--------------------------------
 	//	Event:motor count
 	//--------------------------------
-	int motor_count = (g_Sensor.count_left + g_Sensor.count_right) / 2;
-	//int motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
-	if(abs(motor_count - g_EventStatus.start_motor_count) > abs(g_EventStatus.target_motor_count) && g_EventStatus.motor_counter_flag == ON )
-	{
-		setEvent(MOTOR_COUNT);
-		g_EventStatus.target_motor_count = 0;
-		g_EventStatus.start_motor_count = 0;
-		g_EventStatus.motor_counter_flag = OFF;
-	}
+   	if( g_EventStatus.motor_counter_flag == ON )
+   	{
+   		int motor_count = (g_Sensor.count_left + g_Sensor.count_right) / 2;
+   		if( abs(motor_count - g_EventStatus.start_motor_count) > abs(g_EventStatus.target_motor_count) )
+   		{
+   			setEvent(MOTOR_COUNT);
+   			g_EventStatus.target_motor_count = 0;
+   			g_EventStatus.start_motor_count = 0;
+   			g_EventStatus.motor_counter_flag = OFF;
+   		}
+   	}
 
 	//--------------------------------
 	//	Event:bluetooth start
@@ -1006,31 +1032,24 @@ void setController(void)
 	switch( state.action_no )
 	{
 		case DO_NOTHING://do nothing
-			//g_Controller.speed = 0;
 			g_Controller.forward = 0;
 			g_Controller.turn = 0;
-			//g_Controller.PIDmode = NO_MODE;
-			//g_Controller.StandMode = BALANCE;
+
 			break;
 
 		case BALANCE_STOP://stop
-			//g_Controller.speed = 0;
 			g_Controller.forward = 0;
 			g_Controller.turn = 0;
 
-			//nxt_motor_set_speed(TAIL_MOTOR,0,1);
 			g_Controller.PIDmode = WB_PID;
 			g_Controller.StandMode = BALANCE;
-			//balance_init();
-			//nxt_motor_set_count(LEFT_MOTOR,0);
-			//nxt_motor_set_count(RIGHT_MOTOR,0);
+
 			break;
 
 		// linetrace
 		//@param foward:=value0
 		//@param gyro_offset:=value1
 		case BALANCE_LINETRACE:
-			//g_Controller.speed = state.value0;
 			g_Controller.forward = state.value0;
 			g_Sensor.gyro_offset = g_Sensor.gyro_offset_base + state.value1;
 
@@ -1039,7 +1058,6 @@ void setController(void)
 
 
 			//g_Sensor.target_gray = g_Sensor.threshold_gray;
-			//nxt_motor_set_speed(TAIL_MOTOR,0,1);
 
 			break;
 
@@ -1063,7 +1081,6 @@ void setController(void)
 		//@param turn :=value2
 		case TAIL_RUN_FREEDOM:
 			g_Controller.target_tail = state.value0;
-			//g_Controller.tail_run_speed = state.value1;
 			g_Controller.forward = state.value1;
 			g_Controller.turn = state.value2;
 			g_Controller.TP_gain = state.value3;
@@ -1075,16 +1092,22 @@ void setController(void)
 		//set timer
 		//@param limit_timer:=value0 i.e. 20 = 2.0sec
 		case TIMER_SET:
-			g_EventStatus.timer_flag = ON;
-			g_EventStatus.start_time = systick_get_ms();
-			g_EventStatus.target_time = state.value0 * 100;
+			if(g_EventStatus.timer_flag == OFF)
+			{
+				g_EventStatus.start_time = systick_get_ms();
+				g_EventStatus.target_time = state.value0 * 100;
+				g_EventStatus.timer_flag = ON;
+			}
 
 			break;
 		//set motor count
 		case MOTOR_SET:
-			//g_EventStatus.start_motor_count = (nxt_motor_get_count(LEFT_MOTOR) + nxt_motor_get_count(RIGHT_MOTOR)) / 2;
-			g_EventStatus.start_motor_count = (g_Sensor.count_left + g_Sensor.count_right) / 2;
-			g_EventStatus.target_motor_count = state.value0;
+			if( g_EventStatus.motor_counter_flag == OFF )
+			{
+				g_EventStatus.start_motor_count = (g_Sensor.count_left + g_Sensor.count_right) / 2;
+				g_EventStatus.target_motor_count = state.value0;
+				g_EventStatus.motor_counter_flag = ON;
+			}
 
 			break;
 
@@ -1128,35 +1151,26 @@ void setController(void)
 		//circling
 		//@param angle to turn
 		case PIVOT_TURN:
-			//g_Controller.tail_on=1;
-			//g_Controller.balance_on=0;
-			g_Controller.PIDmode = NO_PID_MODE;
-			g_Controller.forward = 0;
-			//g_Controller.tail_run_speed=1;
-			/*if(g_Controller.balance_flag == ON)
-			{
-				g_Controller.turn = state.value1;
-			}
-			else
-			{
-				g_Controller.turn = -(state.value1);
-			}*/
 
-			if( state.value0 >= 0 )
+			if(g_EventStatus.pivot_turn_flag == OFF)
 			{
-				g_Controller.turn = state.value1;
-			}
-			else
-			{
-				g_Controller.turn = -(state.value1);
+				g_Controller.PIDmode = NO_PID_MODE;
+				g_Controller.forward = 0;
+
+				if( state.value0 >= 0 )
+				{
+					g_Controller.turn = state.value1;
+				}
+				else
+				{
+					g_Controller.turn = -(state.value1);
+				}
+
+				g_EventStatus.start_pivot_turn_encoder_R = g_Sensor.count_right;
+				g_EventStatus.target_pivot_turn_angle_R = calcAngle2Encoder(state.value0);
+				g_EventStatus.pivot_turn_flag = ON;
 			}
 
-			/*if(state.value0 < 0){
-				g_Controller.turn *= -1;
-			}*/
-			g_EventStatus.start_pivot_turn_encoder_R = g_Sensor.count_right;
-			g_EventStatus.target_pivot_turn_angle_R = calcAngle2Encoder(state.value0);
-			g_EventStatus.pivot_turn_flag = ON;
 			break;
 
 		//selecting logger
@@ -1268,10 +1282,17 @@ void tail_run_turn2pwm(S16 tail_run_speed ,float turn ,S8 *_pwm_L, S8 *_pwm_R)
 */
 U16 calcAngle2Encoder(S16 ang)
 {
-	U16 ret = 0;
-	ret = (U16)( abs(ang * 16.3 / 8.1) );
+	F32 ret = 0;
+	ret = (F32)ang * 16.3 / 8.1;
 
-	return ret;
+	if(ret < 0)
+	{
+		ret = -ret;
+	}
+
+	//ret = (U16)( abs( (int)(ang * 16.3 / 8.1) ) );
+
+	return (U16)ret;
 }
 
 /*

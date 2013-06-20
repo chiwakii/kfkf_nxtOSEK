@@ -260,7 +260,7 @@ void setNextState(void) {
     display_clear(0);
 	display_goto_xy(0, 0);
 	display_string("Prep:TRUE");
-	display_int(,);
+	display_int(g_StateMachine.states[g_StateMachine.current_state].action_no,4);
     display_update();
 	clearEvent();
 
