@@ -1,13 +1,9 @@
 #include <math.h>
 #include <stdlib.h>
 //
-#include "kernel.h"
-#include "kernel_id.h"
-#include "ecrobot_interface.h"
+#include "Common.h"
 
 #include "balancer.h"
-//
-#include "Common.h"
 #include "NXT_Config.h"
 #include "SensorManager.h"
 #include "Controller.h"
@@ -28,10 +24,10 @@
 ===============================================================================================
 */
 DeclareCounter(SysTimerCnt);
-DeclareTask(TaskMain);					/* Task to manage behavior of robot */
-DeclareTask(TaskActuator);				/* Task to actuate */
-DeclareTask(TaskSensor);				/* Task to sense */
-DeclareTask(TaskLogger);				/* Task to send logging data */
+DeclareTask(TaskMain);			/* Task to manage behavior of robot */
+DeclareTask(TaskSensor);		/* Task to sense */
+DeclareTask(TaskActuator);		/* Task to actuate */
+DeclareTask(TaskLogger);		/* Task to send logging data */
 
 /*
 ===============================================================================================
@@ -201,7 +197,7 @@ TASK(TaskMain)
 		//==========================================
 		case BTCOMM:
 			TailStand();
-			receive_BT();
+			ReceiveBT();
 
 			/* Transition:Auto */
 			g_MTState = TARGETCALIB;

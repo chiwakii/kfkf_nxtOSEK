@@ -1,10 +1,6 @@
 #ifndef _CONTOROLLER_H_
 #define _CONTOROLLER_H_
 
-#include "kernel.h"
-#include "kernel_id.h"
-#include "ecrobot_interface.h"
-
 #include "Common.h"
 
 typedef enum _PIDMode
@@ -21,8 +17,8 @@ typedef enum _StandMode
 	TAIL = 2
 }StandMode_e;
 
-typedef struct tag_Controller{
-
+typedef struct tag_Controller
+{
 	//F32 speed;
 
 	PIDMode_e PIDmode;

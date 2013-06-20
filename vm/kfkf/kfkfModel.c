@@ -8,8 +8,22 @@
 */
 
 #include <stdlib.h>
+
 #include "kfkfModel.h"
 
+/*
+===============================================================================================
+	Definition
+===============================================================================================
+*/
+/* Buffer size for Bluetooth */
+#define BT_RCV_BUF_SIZE 32
+/* The number of event */
+#define RESERVED_EVENT_SIZE 3000
+/* The number of state */
+#define RESERVED_STATES_SIZE 900
+
+/* Definition of Structure of state machine */
 typedef struct tag_StateMachine {
 	S16 num_of_events;
 	S16 num_of_states;
@@ -18,16 +32,21 @@ typedef struct tag_StateMachine {
 	S16 current_state;
 } StateMachine_t;
 
-/* NXT Bluetooth configuration */
-#define BT_RCV_BUF_SIZE 32		/* Buffer size for bluetooth */
-
-#define RESERVED_MATRIX_SIZE 3000
-#define RESERVED_STATES_SIZE 900
-
-S16 bt_receive_buf[BT_RCV_BUF_SIZE];	/* bluetooth */
-
+/*
+===============================================================================================
+	Variables
+===============================================================================================
+*/
+/* Buffer for Bluetooth */
+static S16 bt_receive_buf[BT_RCV_BUF_SIZE];
+/* State Machine for kfkf Model */
 static StateMachine_t g_StateMachine;
 
+/*
+===============================================================================================
+	Functions
+===============================================================================================
+*/
 void InitStateMachine(void)
 {
 	g_StateMachine.num_of_events = 0;
@@ -47,17 +66,17 @@ void InitStateMachine(void)
 	Description: ??
 	Parameter: no
 	Return Value: no
-	---
-	update: 2013.06.13
 ===============================================================================================
 */
-void receive_BT(void){
+void ReceiveBT(void){
 	
-	S16 matrix[RESERVED_MATRIX_SIZE];
+	S16 events[RESERVED_EVENT_SIZE];
 	S16 states[RESERVED_STATES_SIZE];
 	
-    int packet_no = 1,	//packet number.
-    int ptr = 0;
+    U16 packet_no = 1;	//packet number
+    U16 ptr = 0;
+
+    U16 i = 0;
 
     display_clear(0);
     display_goto_xy(0, 1);
@@ -93,7 +112,6 @@ void receive_BT(void){
 
     while(1/*ptr+14 <num_of_states*num_of_events*/)
     {
-        int i = 0;
         systick_wait_ms(100);
         
         ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
@@ -107,7 +125,7 @@ void receive_BT(void){
         {
             for(i=2;i<16;i++)
             {
-                *(matrix+ptr) = *(bt_receive_buf+i);
+                *(events+ptr) = *(bt_receive_buf+i);
                 ptr++;
             }
             packet_no++;
@@ -127,7 +145,7 @@ void receive_BT(void){
 
     for(i=0;i<ptr;i++)
     {
-    	g_StateMachine.events[i] = (EvtType_e)matrix[i];
+    	g_StateMachine.events[i] = (EvtType_e)events[i];
     }
     
 
@@ -211,8 +229,6 @@ void receive_BT(void){
 	Description: ??
 	Parameter: no
 	Return Value: g_StateMachine.current_state
-	---
-	update: 2013.06.13
 ===============================================================================================
 */
 S16 getCurrentState()
@@ -226,8 +242,6 @@ S16 getCurrentState()
 	Description: ??
 	Parameter: event_id:S8
 	Return Value:
-	---
-	update: 2013.06.13
 ===============================================================================================
 */
 #define NO_STATE -1
@@ -262,8 +276,6 @@ State_t setNextState(EvtType_e event_id) {
 	Description: ??
 	Parameter: no
 	Return Value: S8
-	---
-	update: 2013.06.17
 ===============================================================================================
 */
 S8 BluetoothStart(void)

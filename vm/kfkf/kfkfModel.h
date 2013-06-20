@@ -10,10 +10,6 @@
 #ifndef _KFKFMODEL_H_
 #define _KFKFMODEL_H_
 
-#include "kernel.h"
-#include "kernel_id.h"
-#include "ecrobot_interface.h"
-
 #include "../Common.h"
 
 //--------------------------------------------------------------------
@@ -89,7 +85,8 @@ typedef struct tag_State {
 
 
 //event manager
-typedef struct tag_EventStatus {
+typedef struct tag_EventStatus
+{
 	U8 touch_status;
 
 	LightStatus_e light_status;
@@ -117,7 +114,7 @@ typedef struct tag_EventStatus {
 	U8 bottle_right_length;
 	U8 bottle_judge;
 
-} EventStatus_t;
+}EventStatus_t;
 
 //--------------------------------------------------------------------
 //	functions
@@ -125,7 +122,7 @@ typedef struct tag_EventStatus {
 //
 void InitStateMachine(void);
 // Receive kfkf model data.
-void receive_BT(void);
+void ReceiveBT(void);
 // Return current kfkf model state.
 S16 getCurrentState(void);
 // ??

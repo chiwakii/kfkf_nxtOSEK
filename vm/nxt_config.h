@@ -10,8 +10,7 @@
 #ifndef _NXT_CONFIG_H_
 #define _NXT_CONFIG_H_
 
-#include "ecrobot_interface.h"
-
+#include "Common.h"
 
 /* NXT sensor port configuration */
 #define GYRO_SENSOR NXT_PORT_S1

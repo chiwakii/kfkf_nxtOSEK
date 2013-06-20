@@ -20,7 +20,7 @@ TARGET_SOURCES := \
 	
 
 # OSEK OIL file
-TOPPERS_OSEK_OIL_SOURCE = task_cycle.oil
+TOPPERS_OSEK_OIL_SOURCE = Task.oil
 
 # Don't modify below part
 O_PATH ?= build

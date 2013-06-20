@@ -14,95 +14,53 @@ CPU ATMEL_AT91SAM7S256
     USERESSCHEDULER = FALSE;
   };
 
-
-  APPMODE appmode1{}; 	/* �A�v���P�[�V�������[�h���` */
-
+  APPMODE appmode1{};
 
 
-  TASK TaskActuator						/* TaskActuator ���` */
+  TASK TaskMain
   {
-    AUTOSTART = TRUE { APPMODE = appmode1 ; };
+    AUTOSTART = TRUE { APPMODE = appmode1; };
+    PRIORITY = 4;
+    ACTIVATION = 1;
+    SCHEDULE = FULL;
+    STACKSIZE = 512;
+  };
+  
+  TASK TaskSensor
+  {
+    AUTOSTART = TRUE { APPMODE = appmode1; };
+    PRIORITY = 1;
+    ACTIVATION = 1;
+    SCHEDULE = FULL;
+    STACKSIZE = 512;
+  };
+  
+  TASK TaskActuator
+  {
+    AUTOSTART = TRUE { APPMODE = appmode1; };
+    PRIORITY = 2;
+    ACTIVATION = 1;
+    SCHEDULE = FULL;
+    STACKSIZE = 512;
+  };
+  
+  TASK TaskLogger
+  {
+    AUTOSTART = TRUE { APPMODE = appmode1; };
     PRIORITY = 3;
     ACTIVATION = 1;
     SCHEDULE = FULL;
     STACKSIZE = 512;
-    EVENT = EventSleepI2C;
-    EVENT = EventSleep;
   };
 
-  TASK TaskSensor						/* TaskSensor ���` */
-  {
-    AUTOSTART = FALSE;
-    PRIORITY = 2;
-    ACTIVATION = 1;
-    SCHEDULE = FULL;
-    STACKSIZE = 512;
-    EVENT = EventSleepI2C;
-    EVENT = EventSleep;
-  };
-
-  TASK TaskMain						/* Task_bg ���` */
-  {
-    AUTOSTART = TRUE { APPMODE = appmode1; };
-    PRIORITY = 2;
-    ACTIVATION = 1;
-    SCHEDULE = FULL;
-    STACKSIZE = 512;
-    EVENT = EventSleepI2C;
-    EVENT = EventSleep;
-  };
-
-  TASK TaskLogger						/* Task_bg ���` */
-  {
-    AUTOSTART = TRUE { APPMODE = appmode1; };
-    PRIORITY = 2;
-    ACTIVATION = 1;
-    SCHEDULE = FULL;
-    STACKSIZE = 512;
-    EVENT = EventSleepI2C;
-    EVENT = EventSleep;
-  };
-
-
-
-  COUNTER SysTimerCnt			/* SysTimerCnt���` */
+  COUNTER SysTimerCnt
   {
     MINCYCLE = 1;
     MAXALLOWEDVALUE = 10000;
-    TICKSPERBASE = 1; /* One tick is equal to 1msec */ 
+    TICKSPERBASE = 1; 
   };
 
-  ALARM cyclic_alarm1		/* ���A���[��1���` */
-  {
-    COUNTER = SysTimerCnt;
-    ACTION = ACTIVATETASK
-    {
-      TASK = TaskActuator;
-    };
-    AUTOSTART = TRUE
-    {
-      ALARMTIME = 1;
-      CYCLETIME = 4;
-      APPMODE = appmode1;
-    };
-  };
-
-  ALARM cyclic_alarm2		
-  {
-    COUNTER = SysTimerCnt;
-    ACTION = ACTIVATETASK
-    {
-      TASK = TaskSensor;
-    };
-    AUTOSTART = TRUE
-    {
-      ALARMTIME = 1;
-      CYCLETIME = 4;		 /* sensor */
-      APPMODE = appmode1;
-    };
-  };
-
-  ALARM cyclic_alarm3		
+  ALARM cyclic_alarm1		
   {
     COUNTER = SysTimerCnt;
     ACTION = ACTIVATETASK
@@ -112,7 +70,37 @@ CPU ATMEL_AT91SAM7S256
     AUTOSTART = TRUE
     {
       ALARMTIME = 1;
-      CYCLETIME = 4;		 /* MainTask */
+      CYCLETIME = 4;
+      APPMODE = appmode1;
+    };
+  };
+  
+  ALARM cyclic_alarm2		
+  {
+    COUNTER = SysTimerCnt;
+    ACTION = ACTIVATETASK
+    {
+      TASK = TaskSensor;
+    };
+    AUTOSTART = FALSE
+    {
+      ALARMTIME = 1;
+      CYCLETIME = 4;
+      APPMODE = appmode1;
+    };
+  };
+  
+  ALARM cyclic_alarm3
+  {
+    COUNTER = SysTimerCnt;
+    ACTION = ACTIVATETASK
+    {
+      TASK = TaskActuator;
+    };
+    AUTOSTART = FALSE
+    {
+      ALARMTIME = 1;
+      CYCLETIME = 4;
       APPMODE = appmode1;
     };
   };
@@ -124,26 +112,13 @@ CPU ATMEL_AT91SAM7S256
     {
       TASK = TaskLogger;
     };
-    AUTOSTART = TRUE
+    AUTOSTART = FALSE
     {
       ALARMTIME = 1;
-
-      CYCLETIME = 10;		 /* Logger */
-
+      CYCLETIME = 10;
       APPMODE = appmode1;
     };
   };
-
-  EVENT EventSleepI2C
-  {
-	MASK = AUTO;
-  };
-
-  EVENT EventSleep
-  {
-	MASK = AUTO;
-  };
-
 
 };
 
