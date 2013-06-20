@@ -56,11 +56,7 @@ void EventSensor(void);
 //
 void setController(void);
 
-//void gyro_calibration();
-//void calibration(int *black,int *white,int *gray);
-//void tail_run_turn2pwm(S16 _tail_run_speed ,float _turn ,S8 *_pwm_L, S8 *_pwm_R);
-U16 calcAngle2Encoder(S16 ang);
-//S8 calc_variance(U16 *buf,int _len);
+int calcAngle2Encoder(S16 ang);
 void TailStand(void);
 
 
@@ -85,7 +81,7 @@ static Sensor_t g_Sensor;
 /* Controller */
 static Controller_t g_Controller;
 /* Event status */
-static EventStatus_t g_EventStatus = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static EventStatus_t g_EventStatus;
 
 //--------------------------------------------------------------------
 //	For logging
@@ -141,8 +137,6 @@ void ecrobot_device_terminate(){
 
 	/* Bluetooth device Termination */
 	ecrobot_term_bt_connection();
-
-	//InitNXT();
 }
 
 /*
@@ -569,14 +563,6 @@ TASK(TaskSensor)
 	//==========================================
 	//	calculation
 	//==========================================
-	
-	//calculate light valiance
-	//g_Sensor.light_V = 1.0*calc_variance(g_Sensor.light_buffer,V_LIGHT_BUFFER_LENGTH);
-	
-	//calculate gyro valiance
-	//g_Sensor.gyro_V = 1.0*calc_variance(g_Sensor.gyro_buffer,V_GYRO_BUFFER_LENGTH);
-
-
 	//Bottle Detecting
 	if(g_EventStatus.bottle_right_length > 0)
 	{
@@ -768,16 +754,6 @@ void InitNXT()
 	g_Controller.color_threshold = g_Sensor.target_gray;
 
 	//g_Sensor.prev_light_value = g_Controller.color_threshold;
-/*
-	for(int m=0 ; m < g_Sensor.LIGHT_BUFFER_LENGTH ; m++)
-	{
-		g_Sensor.light_buffer[m]=g_Sensor.target_gray;
-	}
-	for(int m=0;m<g_Sensor.GYRO_BUFFER_LENGTH;m++)
-	{
-		g_Sensor.gyro_buffer[m] = g_Controller.gyro_offset;
-	}
-*/
 
 	//==========================================
 	//	Event Status variables
@@ -1092,7 +1068,7 @@ void setController(void)
 		//set timer
 		//@param limit_timer:=value0 i.e. 20 = 2.0sec
 		case TIMER_SET:
-			if(g_EventStatus.timer_flag == OFF)
+			if( g_EventStatus.timer_flag == OFF )
 			{
 				g_EventStatus.start_time = systick_get_ms();
 				g_EventStatus.target_time = state.value0 * 100;
@@ -1152,20 +1128,20 @@ void setController(void)
 		//@param angle to turn
 		case PIVOT_TURN:
 
-			if(g_EventStatus.pivot_turn_flag == OFF)
+			g_Controller.PIDmode = NO_PID_MODE;
+			g_Controller.forward = 0;
+
+			if( state.value0 >= 0 )
 			{
-				g_Controller.PIDmode = NO_PID_MODE;
-				g_Controller.forward = 0;
+				g_Controller.turn = state.value1;
+			}
+			else
+			{
+				g_Controller.turn = -(state.value1);
+			}
 
-				if( state.value0 >= 0 )
-				{
-					g_Controller.turn = state.value1;
-				}
-				else
-				{
-					g_Controller.turn = -(state.value1);
-				}
-
+			if( g_EventStatus.pivot_turn_flag == OFF )
+			{
 				g_EventStatus.start_pivot_turn_encoder_R = g_Sensor.count_right;
 				g_EventStatus.target_pivot_turn_angle_R = calcAngle2Encoder(state.value0);
 				g_EventStatus.pivot_turn_flag = ON;
@@ -1233,109 +1209,24 @@ void setController(void)
 	}
 }
 
-
-//****************************************
-//return the Left and Right motor power
-// from speed and turn for tail running
-//***************************************
-/*
-void tail_run_turn2pwm(S16 tail_run_speed ,float turn ,S8 *_pwm_L, S8 *_pwm_R)
-{
-	if(tail_run_speed != 0)
-	{
-		if((tail_run_speed + turn) > 100)
-		{
-			float _turn_overflow = tail_run_speed + turn - 100;
-			*_pwm_R = 100;
-			*_pwm_L = (S8)(tail_run_speed - turn - turn_overflow);
-
-		}
-		else if(_tail_run_speed-_turn > 100)
-		{
-			float _turn_overflow = _tail_run_speed-_turn -100;
-			*_pwm_L = 100;
-			*_pwm_R = (S8)(_tail_run_speed+_turn-_turn_overflow);
-		}
-		else
-		{
-			*_pwm_R = (S8)(_tail_run_speed+_turn);
-			*_pwm_L = (S8)(_tail_run_speed-_turn);
-		}
-
-		/////
-	//	*_pwm_L = (S8)(_tail_run_speed+_turn);
-	//	*_pwm_R = (S8)(_tail_run_speed-_turn);
-		//////
-	}else{
-		*_pwm_L = 0;
-		*_pwm_R = 0;
-
-	}
-
-}
-*/
 /*
 ===============================================================================================
 	name: calcAngle2Encoder
 	Description: ??
 ===============================================================================================
 */
-U16 calcAngle2Encoder(S16 ang)
+int calcAngle2Encoder(S16 ang)
 {
 	F32 ret = 0;
-	ret = (F32)ang * 16.3 / 8.1;
+	ret = (F32)( (F32)ang * 16.3 / 8.1 );
 
 	if(ret < 0)
 	{
 		ret = -ret;
 	}
 
-	//ret = (U16)( abs( (int)(ang * 16.3 / 8.1) ) );
-
-	return (U16)ret;
+	return (int)ret;
 }
-
-/*
-***************************************************************
-	name:calc_variance
-	description:
-
-	Parameter:
-		U16* buf: An array of sensor data.
-		int _len: length of an array
-	Return Value:
-***************************************************************
-
-S8 calc_variance(U16 *buf,int _len){
-	//calculate light valiance
-	long sum=0;
-	long sumv=0;
-	int ave=0;
-	int squ=0;
-	for(int k=0;k<_len;k++){
-
-			if(buf[k]==0){return 0;}
-			sum += buf[k];
-			sumv +=buf[k]*buf[k];
-
-	}
-	ave = sum / _len;
-	squ = sumv-sum*sum/_len;
-	float V = (float)squ /((float)_len -1);
-	//V *=10;
-	//V /=5;  //may not need to divide by 5
-	//int V =(float)sum/(float)_len*100;
-	if(V>127){
-		V=127;
-	}else if(V<-128){
-		V= -128;
-	}
-
-	return (S8)V;
-
-
-}
-*/
 
 /*
 ===============================================================================================
