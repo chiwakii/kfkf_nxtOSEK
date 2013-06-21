@@ -564,14 +564,15 @@ TASK(TaskSensor)
 	//	calculation
 	//==========================================
 	//Bottle Detecting
-	if(g_EventStatus.bottle_right_length > 0)
+	if( g_EventStatus.bottle_right_flag == ON )
 	{
 		if(g_Sensor.distance < g_EventStatus.bottle_right_length)
 		{
 			g_Sensor.bottle_is_right = ON;
 		}
 	}
-	if(g_EventStatus.bottle_left_length > 0)
+
+	if ( g_EventStatus.bottle_left_flag == ON )
 	{
 		if(g_Sensor.distance < g_EventStatus.bottle_left_length)
 		{
@@ -940,11 +941,7 @@ void EventSensor(){
 	{
 		//sendevent turn left or right
 
-		if(g_Sensor.bottle_is_right == ON && g_Sensor.bottle_is_left == ON)
-		{
-
-		}
-		else if(g_Sensor.bottle_is_right == ON && g_Sensor.bottle_is_left == OFF)
+		if(g_Sensor.bottle_is_right == ON && g_Sensor.bottle_is_left == OFF)
 		{
 			//--------------------------------
 			//	Event:bottle is right
@@ -959,7 +956,7 @@ void EventSensor(){
 			setEvent(BOTTLE_LEFT);
 		}
 
-		g_EventStatus.bottle_judge = ON;
+		g_EventStatus.bottle_judge = OFF;
 	}
 
 	//
@@ -1184,21 +1181,31 @@ void setController(void)
 		case SERACH_BOTTLE_RIGHT:
 			g_Controller.forward = 0;
 
-			g_EventStatus.bottle_right_length = state.value0;
-			g_EventStatus.bottle_right_flag = ON;
+			if( g_EventStatus.bottle_right_flag == OFF )
+			{
+				g_EventStatus.bottle_right_length = state.value0;
+				g_EventStatus.bottle_right_flag = ON;
+			}
 			break;
 
 		case SEARCH_BOTTLE_LEFT:
 			g_Controller.forward = 0;
 
-			g_EventStatus.bottle_left_length = state.value0;
-			g_EventStatus.bottle_left_flag = ON;
+			if( g_EventStatus.bottle_left_flag == OFF )
+			{
+				g_EventStatus.bottle_left_length = state.value0;
+				g_EventStatus.bottle_left_flag = ON;
+			}
 
 			break;
 
 		case SEARCH_BOTTLE_END:
+			g_EventStatus.bottle_right_flag = OFF;
 			g_EventStatus.bottle_right_length = 0;
+			g_Sensor.bottle_is_right = OFF;
+			g_EventStatus.bottle_left_flag = OFF;
 			g_EventStatus.bottle_left_length = 0;
+			g_Sensor.bottle_is_left = OFF;
 			break;
 
 		case SEARCH_BOTTLE_JUDGE:
