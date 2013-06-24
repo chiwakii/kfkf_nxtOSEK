@@ -16,7 +16,7 @@ USER_LIB = nxtway_gs_balancer
 TARGET_SOURCES := \
 	Main.c \
 	balancer_param.c \
-	kfkf/kfkfModel.c
+	kfkf_Bluetooth/kfkfModel.c
 	
 
 # OSEK OIL file
