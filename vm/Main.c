@@ -756,7 +756,7 @@ void InitNXT()
 	//	Event Status variables
 	//==========================================
 	g_Controller.touch_status = 0;
-	g_Controller.light_status = LIGHT_STATUS_GRAY;
+	g_Controller.light_status = 0;
 	g_Controller.target_distance = 0;
 	g_Controller.timer_flag = 0;
 	g_Controller.start_time = 0;
@@ -823,7 +823,7 @@ void EventSensor(){
 	//==========================================
 	//	black & white
 	//==========================================
-	if(g_Sensor.light > (g_Actuator.black - 50) && g_Controller.light_status != LIGHT_STATUS_BLACK)
+	if(g_Sensor.light > (g_Actuator.black - 50) && g_Controller.light_status != 2)
 	{
 		//--------------------------------
 		//	Event:black
@@ -831,17 +831,17 @@ void EventSensor(){
 		setEvent(BLACK);
 		g_Controller.light_status = LIGHT_STATUS_BLACK;
 	}
-	else if(g_Sensor.light < (g_Actuator.white + 50) && g_Controller.light_status != LIGHT_STATUS_WHITE)
+	else if(g_Sensor.light < (g_Actuator.white + 50) && g_Controller.light_status != 1)
 	{
 		//--------------------------------
 		//	Event:white
 		//--------------------------------
 		setEvent(WHITE);
-		g_Controller.light_status = LIGHT_STATUS_WHITE;
+		g_Controller.light_status = 1;
 	}
 	else
 	{
-		g_Controller.light_status = LIGHT_STATUS_GRAY;
+		g_Controller.light_status = 0;
 	}
 
 	//--------------------------------
@@ -850,11 +850,11 @@ void EventSensor(){
 	if( g_Actuator.gray_offset - 10 < g_Sensor.light_ave && g_Sensor.light_ave < g_Actuator.gray_offset + 10  )
 	{
 		setEvent(GRAY_MARKER);
-		g_Actuator.TraceMode = WG_PID;
+		g_Actuator.TraceMode = 2;
 	}
 	else
 	{
-		g_Actuator.TraceMode = WB_PID;
+		g_Actuator.TraceMode = 1;
 	}
 
 	//--------------------------------
