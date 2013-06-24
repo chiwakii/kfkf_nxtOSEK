@@ -74,7 +74,8 @@ typedef enum EvtType
 /*--------------------------*/
 /* ETロボコンkfkf用構造体	*/
 /*--------------------------*/
-typedef struct tag_State {
+typedef struct tag_State
+{
 	S16 state_no;
 	ActType_e action_no;
 	S16 value0;
@@ -93,7 +94,7 @@ typedef struct tag_Controller
 
 	/* 光の状態 */
 	/* 0:不明 / 1:白色上 / 2:黒色上 */
-	LightStatus_e light_status;
+	U8 light_status;
 	//S32 gray_marker_count;
 
 	U8 target_distance;
@@ -119,7 +120,6 @@ typedef struct tag_Controller
 	U8 bottle_judge;
 
 }Controller_t;
-//}EventStatus_t;
 
 //--------------------------------------------------------------------
 //	functions
