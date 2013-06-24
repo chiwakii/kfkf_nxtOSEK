@@ -1,9 +1,9 @@
 /*
 ####################################################################################################
 	name: kfkfModel.h
-	Description: ??
+	Description: "ETロボコンkfkf"用プログラム
 	---
-	update: 2013.06.13
+	update: 2013.06.22
 ####################################################################################################
 */
 
@@ -12,14 +12,15 @@
 
 #include "../Common.h"
 
-//--------------------------------------------------------------------
-//	macros
-//--------------------------------------------------------------------
 
-
-//--------------------------------------------------------------------
-//	enumerations
-//--------------------------------------------------------------------
+/*
+===============================================================================================
+	列挙型の定義
+===============================================================================================
+*/
+/*--------------------------*/
+/* 	ETロボコンkfkfのaction	*/
+/*--------------------------*/
 typedef enum ActType
 {
 	NO_TRANSITION = -1,
@@ -45,6 +46,9 @@ typedef enum ActType
 	SEARCH_BOTTLE_JUDGE = 24
 }ActType_e;
 
+/*--------------------------*/
+/* 	ETロボコンkfkfのevent	*/
+/*--------------------------*/
 typedef enum EvtType
 {
 	AUTO = 0,
@@ -62,17 +66,14 @@ typedef enum EvtType
 	BOTTLE_RIGHT = 14
 }EvtType_e;
 
-
-typedef enum LightStatus
-{
-	LIGHT_STATUS_GRAY = 0,
-	LIGHT_STATUS_WHITE = 1,
-	LIGHT_STATUS_BLACK = 2
-}LightStatus_e;
-
-//--------------------------------------------------------------------
-//	structs
-//--------------------------------------------------------------------
+/*
+===============================================================================================
+	構造体の定義
+===============================================================================================
+*/
+/*--------------------------*/
+/* ETロボコンkfkf用構造体	*/
+/*--------------------------*/
 typedef struct tag_State {
 	S16 state_no;
 	ActType_e action_no;
@@ -83,11 +84,15 @@ typedef struct tag_State {
 }State_t;
 
 
-//event manager
-typedef struct tag_EventStatus
+/*--------------------------*/
+/* 	*/
+/*--------------------------*/
+typedef struct tag_Controller
 {
 	U8 touch_status;
 
+	/* 光の状態 */
+	/* 0:不明 / 1:白色上 / 2:黒色上 */
 	LightStatus_e light_status;
 	//S32 gray_marker_count;
 
@@ -101,11 +106,11 @@ typedef struct tag_EventStatus
 	int start_motor_count;
 	int target_motor_count;
 
-	U8 BTstart;
+	U8 BTstart_status;
 
 	U8 pivot_turn_flag;
 	int start_pivot_turn_encoder_R;
-	U16 target_pivot_turn_angle_R;
+	int target_pivot_turn_angle_R;
 
 	U8 bottle_left_flag;
 	U8 bottle_right_flag;
@@ -113,7 +118,8 @@ typedef struct tag_EventStatus
 	U8 bottle_right_length;
 	U8 bottle_judge;
 
-}EventStatus_t;
+}Controller_t;
+//}EventStatus_t;
 
 //--------------------------------------------------------------------
 //	functions

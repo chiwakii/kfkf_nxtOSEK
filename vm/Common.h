@@ -13,7 +13,4 @@
 #include "ecrobot_interface.h"
 
 
-#define ON 1
-#define OFF 0
-
 #endif /* COMMONMACROS_H_ */

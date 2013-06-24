@@ -1,9 +1,9 @@
 /*
 ####################################################################################################
 	name: kfkfModel.c
-	Description: ???
+	Description: "ETロボコンkfkf"用プログラム
 	---
-	update: 2013.06.13
+	update: 2013.06.22
 ####################################################################################################
 */
 
@@ -16,21 +16,21 @@
 	Definition
 ===============================================================================================
 */
-/* Buffer size for Bluetooth */
+/* Bluetooth用バッファのサイズ */
 #define BT_RCV_BUF_SIZE 32
-/* The number of event */
+/* event一時保管用配列のサイズ */
 #define RESERVED_EVENT_SIZE 3000
-/* The number of state */
+/* state一時保管用配列のサイズ */
 #define RESERVED_STATES_SIZE 900
 
-/* Definition of Structure of state machine */
+/* ETロボコンkfkf管理用構造体 */
 typedef struct tag_StateMachine {
 	S16 num_of_events;
 	S16 num_of_states;
 	EvtType_e *events;
 	State_t *states;
 	S16 current_state;
-	U8 *event_array;
+	U8 *event_flag;
 } StateMachine_t;
 
 /*
@@ -38,49 +38,59 @@ typedef struct tag_StateMachine {
 	Variables
 ===============================================================================================
 */
-/* Buffer for Bluetooth */
+/* Bluetooth用バッファ */
 S16 bt_receive_buf[BT_RCV_BUF_SIZE];
-/* State Machine for kfkf Model */
-static StateMachine_t g_StateMachine;
+/* ETロボコンkfkf管理用変数 */
+StateMachine_t g_StateMachine;
 
 /*
 ===============================================================================================
 	Functions
 ===============================================================================================
 */
+
 /*
 ===============================================================================================
 	name: receive_BT
-	Description: ??
+	Description: ETロボコンkfkfの受信処理
 	Parameter: no
 	Return Value: no
 ===============================================================================================
 */
+/*------------------*/
+/* グローバル変数	*/
+/*------------------*/
 static U16 g_PacketCnt = 1;
 static U16 g_Eptr = 0;
 static U16 g_Sptr = 0;
 
+/*------------------*/
+/* 一時保管用配列	*/
+/*------------------*/
 static S16 events[RESERVED_EVENT_SIZE];
 static S16 states[RESERVED_STATES_SIZE];
 
+/*------------------*/
+/*	  関数			*/
+/*------------------*/
 U8 ReceiveBT(void){
 	
     U16 i = 0;
     U16 j = 0;
-    U8 comm_end = OFF;
+    U8 comm_end = 0;
 
     ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 
-//-------------------------------------------------------------------------------------
-//  If packet end
-//-------------------------------------------------------------------------------------
-    if(bt_receive_buf[1] == 255)
+/*======================================================================================*/
+/*  最後の受信パケットを受信したら														*/
+/*======================================================================================*/
+    if( bt_receive_buf[1] == 255 )
     {
-		//==========================================
-		//	Allocation for events
-		//==========================================
-        g_StateMachine.events = (EvtType_e *)malloc( sizeof(EvtType_e) * g_Eptr );
-        if(g_StateMachine.events == NULL)
+    	/*--------------------------*/
+		/*	eventの割り当て			*/
+    	/*--------------------------*/
+        g_StateMachine.events = (EvtType_e *)calloc( g_Eptr, sizeof(EvtType_e) );
+        if( g_StateMachine.events == NULL )
         {
             display_clear(0);
             display_goto_xy(0, 1);
@@ -100,12 +110,11 @@ U8 ReceiveBT(void){
         	comm_end++;
         }
 
-
-		//==========================================
-		//	Allocation for states
-		//==========================================
-        g_StateMachine.states = (State_t *)malloc( sizeof(State_t) * g_StateMachine.num_of_states );
-        if(g_StateMachine.states == NULL)
+    	/*--------------------------*/
+		/*	stateの割り当て			*/
+    	/*--------------------------*/
+        g_StateMachine.states = (State_t *)calloc( g_StateMachine.num_of_states, sizeof(State_t) );
+        if( g_StateMachine.states == NULL )
         {
             display_clear(0);
             display_goto_xy(0, 1);
@@ -135,18 +144,18 @@ U8 ReceiveBT(void){
 
         if(comm_end >= 2)
         {
-        	comm_end = ON;
+        	comm_end = 1;
 
         	g_StateMachine.current_state = 0;
 
-        	g_StateMachine.event_array = (U8 *)malloc( sizeof(U8) * g_StateMachine.num_of_events );
+        	g_StateMachine.event_flag = (U8 *)calloc( g_StateMachine.num_of_events, sizeof(U8) );
         	clearEvent();
         }
     }
 
-//-------------------------------------------------------------------------------------
-//  If packet type:1
-//-------------------------------------------------------------------------------------
+/*======================================================================================*/
+/*  受信パケットの種類が"1"																*/
+/*======================================================================================*/
     if(bt_receive_buf[0] == g_PacketCnt && bt_receive_buf[1] == 1)
     {
     	g_StateMachine.num_of_states = bt_receive_buf[2];
@@ -155,9 +164,9 @@ U8 ReceiveBT(void){
     	g_PacketCnt++;
     }
 
-//-------------------------------------------------------------------------------------
-//  If packet type:2
-//-------------------------------------------------------------------------------------
+/*======================================================================================*/
+/*  受信パケットの種類が"2"																*/
+/*======================================================================================*/
     if(bt_receive_buf[0] == g_PacketCnt && bt_receive_buf[1] == 2)
     {
     	for(i=2;i<16;i++)
@@ -170,9 +179,9 @@ U8 ReceiveBT(void){
     	g_PacketCnt++;
     }
 
-//-------------------------------------------------------------------------------------
-//  If packet type:3
-//-------------------------------------------------------------------------------------
+/*======================================================================================*/
+/*  受信パケットの種類が"3"																*/
+/*======================================================================================*/
     if(bt_receive_buf[0] == g_PacketCnt && bt_receive_buf[1] == 3)
     {
     	for(i=2;i<16;i++)
@@ -185,12 +194,11 @@ U8 ReceiveBT(void){
     	g_PacketCnt++;
     }
     
-
-	//==========================================
-	//	End of BT communication
-    // -------
-    // Not END:OFF / END:ON
-	//==========================================
+	/*----------------------------------*/
+	/*	パケット受信の終了を知らせる	*/
+    /*	------------------------------	*/
+    /*	終了してない:0 / 終了した:1		*/
+	/*----------------------------------*/
     return comm_end;
 }
 
@@ -198,9 +206,9 @@ U8 ReceiveBT(void){
 /*
 ===============================================================================================
 	name: getCurrentStateNum
-	Description: ??
+	Description: 現在の状態の番号をわたす
 	Parameter: no
-	Return Value: g_StateMachine.current_state
+	Return Value: 状態の番号(S16)
 ===============================================================================================
 */
 S16 getCurrentStateNum()
@@ -208,58 +216,80 @@ S16 getCurrentStateNum()
 	return g_StateMachine.current_state;
 }
 
+/*
+===============================================================================================
+	name: getCurrentState
+	Description: 現在の状態をわたす
+	Parameter: no
+	Return Value: 状態(State_t)
+===============================================================================================
+*/
 State_t getCurrentState(void)
 {
 	return g_StateMachine.states[g_StateMachine.current_state];
 }
 
-
+/*
+===============================================================================================
+	name: setEvent
+	Description: 発生したイベントのフラグを立てる
+	Parameter: イベントの種類(EvtType_e)
+	Return Value: no
+===============================================================================================
+*/
 void setEvent(EvtType_e event_id)
 {
-	g_StateMachine.event_array[(U16)event_id] = ON;
+	g_StateMachine.event_flag[(U16)event_id] = 1;
 }
 
+/*
+===============================================================================================
+	name: clearEvent
+	Description: イベントフラグの初期化
+	Parameter: no
+	Return Value: no
+===============================================================================================
+*/
 void clearEvent(void)
 {
 	U16 i = 0;
 
 	for(i=0;i<g_StateMachine.num_of_events;i++){
-		g_StateMachine.event_array[i] = OFF;
+		g_StateMachine.event_flag[i] = 0;
 	}
 }
 
 /*
 ===============================================================================================
-	name: set_NextState(befote:sendevent)
-	Description: ??
-	Parameter: event_id:S8
-	Return Value:
+	name: setNextState
+	Description: 遷移先の状態番号をセットする
+	Parameter: no
+	Return Value: no
 ===============================================================================================
 */
-#define NO_STATE -1
-
 void setNextState(void) {
-	S8 next_state = NO_STATE;
+	S8 next_state = -1;
 	S16 i = 0;
 
-	for(i=0;i<g_StateMachine.num_of_events;i++){
+	for( i=0;i<g_StateMachine.num_of_events;i++ ){
 
-		if( g_StateMachine.event_array[i] == ON)
+		if( g_StateMachine.event_flag[i] == 1)
 		{
-			next_state = g_StateMachine.events[i + g_StateMachine.current_state * g_StateMachine.num_of_events];
-
-			if(next_state != NO_STATE)
+			if( g_StateMachine.events[i + g_StateMachine.current_state * g_StateMachine.num_of_events] != -1 )
 			{
-				g_StateMachine.current_state = next_state;
+				next_state = g_StateMachine.events[i + g_StateMachine.current_state * g_StateMachine.num_of_events];
 			}
-
 		}
+	}
 
+	if( next_state != -1 )
+	{
+		g_StateMachine.current_state = next_state;
 	}
 
     display_clear(0);
 	display_goto_xy(0, 0);
-	display_string("Prep:TRUE");
+	display_string("Act:");
 	display_int(g_StateMachine.states[g_StateMachine.current_state].action_no,4);
     display_update();
 	clearEvent();
@@ -269,23 +299,23 @@ void setNextState(void) {
 /*
 ===============================================================================================
 	name: BluetoothStart
-	Description: ??
+	Description: Bluetooth送信機の"START"ボタンの押下を知らせる
 	Parameter: no
-	Return Value: S8
+	Return Value: 押下していない:0 / 押下した:1 (S8)
 ===============================================================================================
 */
 S8 BluetoothStart(void)
 {
-	U8 btstart = OFF;
+	U8 btstart = 0;
 
 	ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 	if(bt_receive_buf[1] == 254 )
 	{
-		btstart = ON;
+		btstart = 1;
 	}
 	else
 	{
-		btstart = OFF;
+		btstart = 0;
 	}
 
 	return btstart;
@@ -295,36 +325,32 @@ S8 BluetoothStart(void)
 /*
 ===============================================================================================
 	name: InitKFKF
-	Description: ??
+	Description: ETロボコンkfkfに関する変数の初期化
 	Parameter: no
 	Return Value: no
 ===============================================================================================
 */
 void InitKFKF(void)
 {
-	U16 i = 0;
+	int i = 0;
 
-	//==========================================
-	//	Initialization of StateMachine
-	//==========================================
+	/*--------------------------*/
+	/*	StateMachine			*/
+	/*--------------------------*/
 	free( g_StateMachine.events );
-	//g_StateMachine.events = NULL;
 
 	free( g_StateMachine.states );
-	//g_StateMachine.states = NULL;
 
-	for(i=0;i<g_StateMachine.num_of_events;i++){
-		g_StateMachine.event_array[i] = OFF;
-	}
-	free( g_StateMachine.event_array );
+	free( g_StateMachine.event_flag );
 
 	g_StateMachine.num_of_events = 0;
 	g_StateMachine.num_of_states = 0;
 	g_StateMachine.current_state = 0;
 
-	//==========================================
-	//	Initialization of others
-	//==========================================
+
+	/*--------------------------*/
+	/*	others					*/
+	/*--------------------------*/
 	g_PacketCnt = 1;
 	g_Eptr = 0;
 	g_Sptr = 0;
@@ -338,3 +364,4 @@ void InitKFKF(void)
 		states[i] = 0;
 	}
 }
+
