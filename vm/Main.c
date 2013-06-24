@@ -829,7 +829,7 @@ void EventSensor(){
 		//	Event:black
 		//--------------------------------
 		setEvent(BLACK);
-		g_Controller.light_status = LIGHT_STATUS_BLACK;
+		g_Controller.light_status = 2;
 	}
 	else if(g_Sensor.light < (g_Actuator.white + 50) && g_Controller.light_status != 1)
 	{
