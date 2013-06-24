@@ -411,13 +411,13 @@ TASK(TaskSensor)
 	//--------------------------------
 	//	Sonar Data
 	//--------------------------------
-	if(g_SonarCnt > 10)
+	if(g_SonarCnt >= 10)
 	{
 		// Update Data of Sonar Sensor
 		g_Sensor.distance = ecrobot_get_sonar_sensor(SONAR_SENSOR);
 		g_SonarCnt = 0;
 	}
-	else
+	else if(g_SonarCnt < 10)
 	{
 		g_SonarCnt++;
 	}
@@ -442,7 +442,7 @@ TASK(TaskSensor)
 	g_Sensor.battery = ecrobot_get_battery_voltage();
 
 	/**/
-	g_Sensor.BTstart = BluetoothStart();
+	//g_Sensor.BTstart = BluetoothStart();
 
 	//==========================================
 	//	calculation
@@ -905,19 +905,18 @@ void EventSensor(){
 	//--------------------------------
 	//	Event:bluetooth start
 	//--------------------------------
-	if(g_Sensor.BTstart == 1 && g_Controller.BTstart_status == 0)
+   	g_Sensor.BTstart = BluetoothStart();
+
+	if( g_Sensor.BTstart == 1 && g_Controller.BTstart_status == 0 )
 	{
 		setEvent(BT_START);
 		g_Controller.BTstart_status = 1;
 	}
-	else if(g_Sensor.BTstart == 0 && g_Controller.BTstart_status == 1)
+	else if( g_Sensor.BTstart == 0 && g_Controller.BTstart_status == 1 )
 	{
 		g_Controller.BTstart_status = 0;
 	}
-	else
-	{
-		/* "g_Controller.BTstart_status"は現状維持 */
-	}
+
 
 	//--------------------------------
 	//	Event:pivot turn
