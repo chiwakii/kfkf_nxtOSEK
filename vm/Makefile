@@ -1,5 +1,5 @@
 # Target specific macros
-TARGET = KFKF_MODEL
+TARGET = ETrobo_KFKF
 
 #NXT_OSEK_ROOT = /cygwin/nxtOSEK
 NXT_OSEK_ROOT = /cygdrive/c/cygwin/nxtOSEK

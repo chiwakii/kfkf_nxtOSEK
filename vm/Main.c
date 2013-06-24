@@ -380,93 +380,90 @@ TASK(TaskSensor)
 {
 	U8 i = 0;
 
-	//==========================================
-	//	Data Update of Sensor
-	//==========================================
-	//--------------------------------
-	//	Light Data
-	//--------------------------------
-	// Update Data of Light Sensor
+	/*----------------------*/
+	/*	光センサー			*/
+	/*----------------------*/
 	g_Sensor.light = ecrobot_get_light_sensor(LIGHT_SENSOR);
 
+	/* 平均計算 */
 	g_LightBuffer[g_LightCnt] = g_Sensor.light;
-	g_LightCnt++;
-	if( g_LightCnt >= LIGHT_BUFFER_LENGTH_MAX )
+	if( ++g_LightCnt >= LIGHT_BUFFER_LENGTH_MAX )
 	{
 		g_LightCnt = 0;
 	}
-
 	for(i=0;i < LIGHT_BUFFER_LENGTH_MAX;i++)
 	{
 		g_LightAve += g_LightBuffer[i];
 	}
-	g_Sensor.light_ave = (U16)(g_LightAve / LIGHT_BUFFER_LENGTH_MAX);
+	g_Sensor.light_ave = (U16)((F32)g_LightAve / LIGHT_BUFFER_LENGTH_MAX);
 
-	//--------------------------------
-	//	Gyro Data
-	//--------------------------------
-	// Update Data of Gyro Sensor
+	/*----------------------*/
+	/*	ジャイロセンサー	*/
+	/*----------------------*/
 	g_Sensor.gyro = ecrobot_get_gyro_sensor(GYRO_SENSOR);
 
-	//--------------------------------
-	//	Sonar Data
-	//--------------------------------
-	if(g_SonarCnt >= 10)
+
+	/*----------------------*/
+	/*	超音波センサー		*/
+	/*----------------------*/
+	/* 40msec毎に検知 */
+	if(++g_SonarCnt >= 10)
 	{
-		// Update Data of Sonar Sensor
 		g_Sensor.distance = ecrobot_get_sonar_sensor(SONAR_SENSOR);
 		g_SonarCnt = 0;
 	}
-	else if(g_SonarCnt < 10)
-	{
-		g_SonarCnt++;
-	}
 
-	//--------------------------------
-	//	Touch Data
-	//--------------------------------
-	// Update Data of Touch Sensor
+	/*----------------------*/
+	/*	タッチセンサー		*/
+	/*----------------------*/
 	g_Sensor.touch = ecrobot_get_touch_sensor(TOUCH_SENSOR);
 
 
-	//--------------------------------
-	//	Motor Data
-	//--------------------------------
+	/*----------------------*/
+	/*	モータカウント		*/
+	/*----------------------*/
 	g_Sensor.count_left = nxt_motor_get_count(LEFT_MOTOR);
 	g_Sensor.count_right = nxt_motor_get_count(RIGHT_MOTOR);
 	g_Sensor.count_tail = nxt_motor_get_count(TAIL_MOTOR);
 
-	//--------------------------------
-	//	battery Data
-	//--------------------------------
+
+	/*----------------------*/
+	/*	バッテリー			*/
+	/*----------------------*/
 	g_Sensor.battery = ecrobot_get_battery_voltage();
 
-	/**/
-	//g_Sensor.BTstart = BluetoothStart();
 
-	//==========================================
-	//	calculation
-	//==========================================
-	//Bottle Detecting
-	if( g_Controller.bottle_right_flag == 1 )
+	/*----------------------*/
+	/*	パケット受信		*/
+	/*----------------------*/
+	getBluetooth();
+
+
+	/*----------------------*/
+	/*	物体センサー		*/
+	/*----------------------*/
+	/* 右側物体 */
+	if( g_Controller.object_right_flag == 1 )
 	{
-		if(g_Sensor.distance < g_Controller.bottle_right_length)
+		if(g_Sensor.distance < g_Controller.object_right_length)
 		{
-			g_Sensor.bottle_is_right = 1;
+			g_Sensor.object_is_right = 1;
 		}
 	}
 
-	if ( g_Controller.bottle_left_flag == 1 )
+	/* 左側物体 */
+	if ( g_Controller.object_left_flag == 1 )
 	{
-		if(g_Sensor.distance < g_Controller.bottle_left_length)
+		if(g_Sensor.distance < g_Controller.object_left_length)
 		{
-			g_Sensor.bottle_is_left = 1;
+			g_Sensor.object_is_left = 1;
 		}
 	}
 
-	//==========================================
-	//  Termination of Task
-	//==========================================
+
+	/*----------------------*/
+	/*	タスク終了			*/
+	/*----------------------*/
 	TerminateTask();
 }
 
@@ -491,6 +488,7 @@ TASK(TaskActuator)
 	/*--------------------------*/
 	/*	旋回値(turn)の計算		*/
 	/*--------------------------*/
+	/* トレースを行う場合 */
 	if( g_Actuator.TraceMode != 0 )
 	{
 		g_Actuator.pre_dif = g_Actuator.dif;
@@ -505,11 +503,11 @@ TASK(TaskActuator)
 		}
 
 		g_Actuator.differential = g_Actuator.dif - g_Actuator.pre_dif;
-		g_Actuator.integral += (g_Actuator.dif + g_Actuator.pre_dif)/2.0 * 0.004;
+		g_Actuator.integral += (F32)(g_Actuator.dif + g_Actuator.pre_dif)/2.0 * 0.004;
 
-		g_Actuator.turn = g_Actuator.P_gain * g_Actuator.dif
+		g_Actuator.turn = (S8)(g_Actuator.P_gain * g_Actuator.dif
 				+ g_Actuator.I_gain * g_Actuator.integral
-				+ g_Actuator.D_gain * g_Actuator.differential;
+				+ g_Actuator.D_gain * g_Actuator.differential);
 	}
 
 	/*--------------------------*/
@@ -554,7 +552,6 @@ TASK(TaskActuator)
 	g_Actuator.tail_pre_dif = g_Actuator.tail_dif;
 	g_Actuator.tail_dif = g_Actuator.target_tail - g_Sensor.count_tail;
 
-	//g_pwm_T = (S8)( g_Actuator.TP_gain * g_Actuator.tail_dif + g_Actuator.TD_gain * (g_Actuator.tail_pre_dif - g_Actuator.tail_dif) );
 	g_pwm_T = (S8)( g_Actuator.TP_gain * g_Actuator.tail_dif );
 
 	if(g_pwm_T > 100)
@@ -627,7 +624,7 @@ TASK(TaskLogger)
 			break;
 
 		case LOG_DT:
-			ecrobot_bt_data_logger( (S8)(g_Sensor.bottle_is_right), (S8)(g_Sensor.bottle_is_left) );
+			ecrobot_bt_data_logger( (S8)(g_Sensor.object_is_right), (S8)(g_Sensor.object_is_left) );
 			break;
 
 		case LOG_BALANCE_TAIL:
@@ -716,8 +713,8 @@ void InitNXT()
 	g_Sensor.count_right = 0;
 	g_Sensor.battery = 600;
 
-	g_Sensor.bottle_is_left = 0;
-	g_Sensor.bottle_is_right = 0;
+	g_Sensor.object_is_left = 0;
+	g_Sensor.object_is_right = 0;
 
 	g_Sensor.BTstart = 0;
 
@@ -737,7 +734,6 @@ void InitNXT()
 	g_Actuator.StandMode = 0;
 	g_Actuator.TraceMode = 0;
 	g_Actuator.target_tail = 0;
-	//g_Actuator.tail_run_speed = 0;
 	g_Actuator.step_offset = 10000;
 	g_Actuator.gray_offset = 10000;
 	g_Actuator.color_threshold = 660;
@@ -746,7 +742,6 @@ void InitNXT()
 	g_Actuator.D_gain = 0.0;
 
 	g_Actuator.TP_gain = 0.8;
-	g_Actuator.TD_gain = 1.0;
 
 	g_Actuator.color_threshold = g_Actuator.target_gray;
 
@@ -768,11 +763,11 @@ void InitNXT()
 	g_Controller.pivot_turn_flag = 0;
 	g_Controller.start_pivot_turn_encoder_R = 0;
 	g_Controller.target_pivot_turn_angle_R = 0;
-	g_Controller.bottle_left_flag = 0;
-	g_Controller.bottle_right_flag = 0;
-	g_Controller.bottle_left_length = 0;
-	g_Controller.bottle_right_length = 0;
-	g_Controller.bottle_judge = 0;
+	g_Controller.object_left_flag = 0;
+	g_Controller.object_right_flag = 0;
+	g_Controller.object_left_length = 0;
+	g_Controller.object_right_length = 0;
+	g_Controller.object_judge = 0;
 }
 
 /*
@@ -934,18 +929,18 @@ void EventSensor(){
 	//==========================================
 	//	drift turn
 	//==========================================
-	if(g_Controller.bottle_judge == 1)
+	if(g_Controller.object_judge == 1)
 	{
 		//sendevent turn left or right
 
-		if(g_Sensor.bottle_is_right == 1 && g_Sensor.bottle_is_left == 0)
+		if(g_Sensor.object_is_right == 1 && g_Sensor.object_is_left == 0)
 		{
 			//--------------------------------
 			//	Event:bottle is right
 			//--------------------------------
 			setEvent(BOTTLE_RIGHT);
 		}
-		else if(g_Sensor.bottle_is_right == 0 && g_Sensor.bottle_is_left == 1)
+		else if(g_Sensor.object_is_right == 0 && g_Sensor.object_is_left == 1)
 		{
 			//--------------------------------
 			//	Event:bottle is left
@@ -953,7 +948,7 @@ void EventSensor(){
 			setEvent(BOTTLE_LEFT);
 		}
 
-		g_Controller.bottle_judge = 0;
+		g_Controller.object_judge = 0;
 	}
 
 	//
@@ -1171,35 +1166,35 @@ void setController(void)
 		case SERACH_BOTTLE_RIGHT:
 			g_Actuator.forward = 0;
 
-			if( g_Controller.bottle_right_flag == 0 )
+			if( g_Controller.object_right_flag == 0 )
 			{
-				g_Controller.bottle_right_length = state.value0;
-				g_Controller.bottle_right_flag = 1;
+				g_Controller.object_right_length = state.value0;
+				g_Controller.object_right_flag = 1;
 			}
 			break;
 
 		case SEARCH_BOTTLE_LEFT:
 			g_Actuator.forward = 0;
 
-			if( g_Controller.bottle_left_flag == 0 )
+			if( g_Controller.object_left_flag == 0 )
 			{
-				g_Controller.bottle_left_length = state.value0;
-				g_Controller.bottle_left_flag = 1;
+				g_Controller.object_left_length = state.value0;
+				g_Controller.object_left_flag = 1;
 			}
 
 			break;
 
 		case SEARCH_BOTTLE_END:
-			g_Controller.bottle_right_flag = 0;
-			g_Controller.bottle_right_length = 0;
-			g_Sensor.bottle_is_right = 0;
-			g_Controller.bottle_left_flag = 0;
-			g_Controller.bottle_left_length = 0;
-			g_Sensor.bottle_is_left = 0;
+			g_Controller.object_right_flag = 0;
+			g_Controller.object_right_length = 0;
+			g_Sensor.object_is_right = 0;
+			g_Controller.object_left_flag = 0;
+			g_Controller.object_left_length = 0;
+			g_Sensor.object_is_left = 0;
 			break;
 
 		case SEARCH_BOTTLE_JUDGE:
-			g_Controller.bottle_judge = 1;
+			g_Controller.object_judge = 1;
 			break;
 		default:
 			break;

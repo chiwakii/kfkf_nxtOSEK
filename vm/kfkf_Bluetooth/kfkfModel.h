@@ -113,11 +113,11 @@ typedef struct tag_Controller
 	int start_pivot_turn_encoder_R;
 	int target_pivot_turn_angle_R;
 
-	U8 bottle_left_flag;
-	U8 bottle_right_flag;
-	U8 bottle_left_length;
-	U8 bottle_right_length;
-	U8 bottle_judge;
+	U8 object_left_flag;
+	U8 object_right_flag;
+	U8 object_left_length;
+	U8 object_right_length;
+	U8 object_judge;
 
 }Controller_t;
 
@@ -126,6 +126,8 @@ typedef struct tag_Controller
 //--------------------------------------------------------------------
 //
 void InitKFKF(void);
+//
+void getBluetooth(void);
 // Receive kfkf model data.
 U8 ReceiveBT(void);
 // Return current kfkf model state.

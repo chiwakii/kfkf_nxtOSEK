@@ -31,9 +31,9 @@ typedef struct tag_Actuator
 	F32 I_gain;
 	F32 D_gain;
 
-	S32 dif;
-	S32 pre_dif;
-	S32 differential;
+	S16 dif;
+	S16 pre_dif;
+	S16 differential;
 	F32 integral;
 	
 	U16 step_offset;
@@ -42,7 +42,6 @@ typedef struct tag_Actuator
 	S16 tail_dif;
 	S16 tail_pre_dif;
 	F32 TP_gain;
-	F32 TD_gain;
 
 }Actuator_t;
 //}Controller_t;
