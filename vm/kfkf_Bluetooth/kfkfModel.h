@@ -90,8 +90,6 @@ typedef struct tag_State
 /*--------------------------*/
 typedef struct tag_Controller
 {
-	U8 touch_status;
-
 	/* 光の状態 */
 	/* 0:不明 / 1:白色上 / 2:黒色上 */
 	U8 light_status;
@@ -106,8 +104,6 @@ typedef struct tag_Controller
 	U8 motor_counter_flag;
 	int start_motor_count;
 	int target_motor_count;
-
-	U8 BTstart_status;
 
 	U8 pivot_turn_flag;
 	int start_pivot_turn_encoder_R;
@@ -126,8 +122,6 @@ typedef struct tag_Controller
 //--------------------------------------------------------------------
 //
 void InitKFKF(void);
-//
-void getBluetooth(void);
 // Receive kfkf model data.
 U8 ReceiveBT(void);
 // Return current kfkf model state.

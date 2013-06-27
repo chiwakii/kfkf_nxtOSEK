@@ -18,10 +18,9 @@ typedef struct tag_Sensor
 	int count_tail;
 	U16 battery;
 
-	U8 bottle_is_left;
-	U8 bottle_is_right;
+	U8 object_is_left;
+	U8 object_is_right;
 
-	U8 BTstart;
 }Sensor_t;
 
 #endif

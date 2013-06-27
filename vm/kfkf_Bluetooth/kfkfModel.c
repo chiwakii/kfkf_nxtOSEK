@@ -51,19 +51,6 @@ StateMachine_t g_StateMachine;
 
 /*
 ===============================================================================================
-	name: getCurrentStateNum
-	Description: 現在の状態の番号をわたす
-	Parameter: no
-	Return Value: 状態の番号(S16)
-===============================================================================================
-*/
-void getBluetooth(void)
-{
-	ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
-}
-
-/*
-===============================================================================================
 	name: ReceiveBT
 	Description: ETロボコンkfkfの受信処理
 	Parameter: no
@@ -92,7 +79,7 @@ U8 ReceiveBT(void){
     U16 j = 0;
     U8 comm_end = 0;
 
-    //ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
+    ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 
 /*======================================================================================*/
 /*  最後の受信パケットを受信したら														*/
@@ -321,7 +308,7 @@ void setNextState(void) {
 */
 S8 BluetoothStart(void)
 {
-	//ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
+	ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 
 	if( bt_receive_buf[1] == 254 && bt_receive_buf[0] != g_PacketCnt )
 	{

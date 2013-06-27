@@ -160,9 +160,9 @@ TASK(TaskMain)
 
 	switch(g_MTState)
 	{
-		/*--------------------------*/
-		/*	初期化					*/
-		/*--------------------------*/
+		/*----------------------------------------------*/
+		/*	初期化										*/
+		/*----------------------------------------------*/
 		case INIT:
 			display_clear(0);
 			display_goto_xy(0, 0);
@@ -179,9 +179,9 @@ TASK(TaskMain)
 			g_MTState = BTCOMM;
 			break;
 
-		/*--------------------------*/
-		/*	kfkfモデル受信			*/
-		/*--------------------------*/
+		/*----------------------------------------------*/
+		/*	kfkfモデル受信								*/
+		/*----------------------------------------------*/
 		case BTCOMM:
 			if(ReceiveBT() == 1)
 			{
@@ -368,10 +368,11 @@ TASK(TaskMain)
 /*==================================================*/
 /*	変数											*/
 /*==================================================*/
-static U8 g_SonarCnt = 0;
-static U8 g_LightCnt = 0;
-static U16 g_LightBuffer[ LIGHT_BUFFER_LENGTH_MAX ] = {0};
-static U32 g_LightAve = 0;
+static U8 g_TouchSt;
+static U8 g_SonarCnt;
+static U8 g_LightCnt;
+static U16 g_LightBuffer[ LIGHT_BUFFER_LENGTH_MAX ];
+static U32 g_LightAve;
 
 /*==================================================*/
 /*	タスク											*/
@@ -395,7 +396,7 @@ TASK(TaskSensor)
 	{
 		g_LightAve += g_LightBuffer[i];
 	}
-	g_Sensor.light_ave = (U16)((F32)g_LightAve / LIGHT_BUFFER_LENGTH_MAX);
+	g_Sensor.light_ave = (U16)( (F32)g_LightAve / LIGHT_BUFFER_LENGTH_MAX );
 
 	/*----------------------*/
 	/*	ジャイロセンサー	*/
@@ -416,7 +417,20 @@ TASK(TaskSensor)
 	/*----------------------*/
 	/*	タッチセンサー		*/
 	/*----------------------*/
-	g_Sensor.touch = ecrobot_get_touch_sensor(TOUCH_SENSOR);
+	if(ecrobot_get_touch_sensor(TOUCH_SENSOR) == 1 && g_TouchSt == 0)
+	{
+		g_Sensor.touch = 1;
+		g_TouchSt = 1;
+	}
+	else if(ecrobot_get_touch_sensor(TOUCH_SENSOR) == 0 && g_TouchSt == 1)
+	{
+		g_Sensor.touch = 0;
+		g_TouchSt = 0;
+	}
+	else
+	{
+		g_Sensor.touch = 0;
+	}
 
 
 	/*----------------------*/
@@ -431,12 +445,6 @@ TASK(TaskSensor)
 	/*	バッテリー			*/
 	/*----------------------*/
 	g_Sensor.battery = ecrobot_get_battery_voltage();
-
-
-	/*----------------------*/
-	/*	パケット受信		*/
-	/*----------------------*/
-	getBluetooth();
 
 
 	/*----------------------*/
@@ -682,6 +690,7 @@ void InitNXT()
 	g_CalibLightSum = 0;
 	g_CalibFlag = 0;
 
+	g_TouchSt = 0;
 	g_SonarCnt = 0;
 	g_LightCnt = 0;
 	g_LightAve = 0;
@@ -716,8 +725,6 @@ void InitNXT()
 	g_Sensor.object_is_left = 0;
 	g_Sensor.object_is_right = 0;
 
-	g_Sensor.BTstart = 0;
-
 
 	//==========================================
 	//	Controller variables
@@ -750,7 +757,6 @@ void InitNXT()
 	//==========================================
 	//	Event Status variables
 	//==========================================
-	g_Controller.touch_status = 0;
 	g_Controller.light_status = 0;
 	g_Controller.target_distance = 0;
 	g_Controller.timer_flag = 0;
@@ -759,7 +765,6 @@ void InitNXT()
 	g_Controller.motor_counter_flag = 0;
 	g_Controller.start_motor_count = 0;
 	g_Controller.target_motor_count = 0;
-	g_Controller.BTstart_status = 0;
 	g_Controller.pivot_turn_flag = 0;
 	g_Controller.start_pivot_turn_encoder_R = 0;
 	g_Controller.target_pivot_turn_angle_R = 0;
@@ -805,14 +810,9 @@ void EventSensor(){
 	//--------------------------------
 	//	Event:touch
 	//--------------------------------
-	if(g_Sensor.touch == 1 && g_Controller.touch_status == 0)
+	if( g_Sensor.touch == 1 )
 	{
 		setEvent(TOUCH);
-		g_Controller.touch_status = 1;
-	}
-	else if(g_Sensor.touch == 0 && g_Controller.touch_status == 1)
-	{
-		g_Controller.touch_status = 0;
 	}
 
 	//==========================================
@@ -900,16 +900,9 @@ void EventSensor(){
 	//--------------------------------
 	//	Event:bluetooth start
 	//--------------------------------
-   	g_Sensor.BTstart = BluetoothStart();
-
-	if( g_Sensor.BTstart == 1 && g_Controller.BTstart_status == 0 )
+	if( BluetoothStart() == 1 )
 	{
 		setEvent(BT_START);
-		g_Controller.BTstart_status = 1;
-	}
-	else if( g_Sensor.BTstart == 0 && g_Controller.BTstart_status == 1 )
-	{
-		g_Controller.BTstart_status = 0;
 	}
 
 
