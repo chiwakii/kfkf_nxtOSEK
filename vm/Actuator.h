@@ -1,3 +1,10 @@
+/*
+####################################################################################################
+	name: Actuator.h
+	Description: アクチュエータ構造体
+####################################################################################################
+*/
+
 #ifndef _CONTOROLLER_H_
 #define _CONTOROLLER_H_
 
@@ -13,19 +20,19 @@ typedef struct tag_Actuator
 	/* 0:倒立なし / 1:バランスとって立つ / 2:しっぽで立つ */
 	U8 StandMode;
 	
-	S8 forward;
-	S8 turn;
+	S8 forward;		/* 前後進 */
+	S8 turn;		/* 旋回 */
 
-	U16 black;
-	U16 white;
-	U16 target_gray;
-	U16 target_gray_base;
+	U16 black;				/* 黒色検知用 */
+	U16 white;				/* 白色検知用 */
+	U16 target_gray;		/* ライントレース目標 */
+	U16 target_gray_base;	/* ライントレース目標(保存用) */
 
-	S16 gray_offset;
-	int color_threshold;
+	S16 gray_offset;		/*  */
+	int color_threshold;	/*  */
 
-	U16 gyro_offset;
-	U16 gyro_offset_base;
+	U16 gyro_offset;		/* ジャイロオフセット */
+	U16 gyro_offset_base;	/* ジャイロオフセット(保存用) */
 
 	F32 P_gain;
 	F32 I_gain;

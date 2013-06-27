@@ -7,6 +7,7 @@
 #include "NXT_Config.h"
 #include "Sensor.h"
 #include "Actuator.h"
+#include "Controller.h"
 
 #include "kfkf_Bluetooth/kfkfModel.h"
 #include "kfkf_Bluetooth/Logger.h"
@@ -25,7 +26,7 @@ DeclareTask(TaskLogger);
 /*======================================*/
 typedef enum _MainTaskState
 {
-	INIT,
+	INIT = 0,
 	BTCOMM,
 	TARGETCALIB,
 	WHITECALIB,
@@ -40,30 +41,30 @@ void InitNXT(void);
 //
 void EventSensor(void);
 //
-void setController(void);
+void ActionSet(void);
 
 int calcAngle2Encoder(S16 ang);
 
 /*======================================*/
 /*	変数宣言							*/
 /*======================================*/
-S8 g_pwm_L = 0;
-S8 g_pwm_R = 0;
-S8 g_pwm_T = 0;
+S8 g_pwm_L;
+S8 g_pwm_R;
+S8 g_pwm_T;
 
 /*--------------------------*/
-/*	センサー用				*/
+/*	センサ用				*/
 /*--------------------------*/
 static Sensor_t g_Sensor;
 
 /*--------------------------*/
-/*	コントローラー用		*/
+/*	コントローラ用			*/
 /*--------------------------*/
 /* Event status */
 static Controller_t g_Controller;
 
 /*--------------------------*/
-/*	アクチュエーター用		*/
+/*	アクチュエータ用		*/
 /*--------------------------*/
 static Actuator_t g_Actuator;
 
@@ -131,25 +132,22 @@ void user_1ms_isr_type2(void)
 }
 
 
-
-/************************************************************/
-/*	Task													*/
-/************************************************************/
-
+/************************************************/
+/*	タスク										*/
+/************************************************/
 /*
 ===============================================================================================
 	name: TaskMain
 	Description: ロボットのメインタスク
 ===============================================================================================
 */
-
 /*==================================================*/
 /*	変数											*/
 /*==================================================*/
-static U8 g_CalibCnt = 0;
-static U32 g_CalibGyroSum = 0;
-static U32 g_CalibLightSum = 0;
-static U8 g_CalibFlag = 0;
+static U8 g_CalibCnt;
+static U32 g_CalibGyroSum;
+static U32 g_CalibLightSum;
+static U8 g_CalibFlag;
 static MainTaskState_e g_MTState = INIT;
 
 /*==================================================*/
@@ -343,7 +341,7 @@ TASK(TaskMain)
 		/*----------------------------------------------*/
 		case ACTION:
 			EventSensor();
-			setController();
+			ActionSet();
 
 			if( ecrobot_is_ENTER_button_pressed() == 1 )
 			{
@@ -586,25 +584,141 @@ TASK(TaskActuator)
 	TerminateTask();
 }
 
+/************************************************/
+/*	関数										*/
+/************************************************/
+/*
+===============================================================================================
+	name: InitNXT
+	Description: 初期化用関数
+ 	Parameter: no
+	Return Value: no
+===============================================================================================
+*/
+void InitNXT()
+{
+	U8 i = 0;
+
+	/*----------------------------------------------*/
+	/*	初期化:ETロボコンkfkf						*/
+	/*----------------------------------------------*/
+	InitKFKF();
+
+	/*----------------------------------------------*/
+	/*	初期化:グローバル変数						*/
+	/*----------------------------------------------*/
+	g_CalibCnt = 0;
+	g_CalibGyroSum = 0;
+	g_CalibLightSum = 0;
+	g_CalibFlag = 0;
+
+	g_TouchSt = 0;
+	g_SonarCnt = 0;
+	g_LightCnt = 0;
+	g_LightAve = 0;
+	for(i=0;i<LIGHT_BUFFER_LENGTH_MAX;i++)
+	{
+		g_LightBuffer[i] = 0;
+	}
+
+	/*----------------------------------------------*/
+	/*	初期化:バランサー&モータ					*/
+	/*----------------------------------------------*/
+	balance_init();
+	nxt_motor_set_speed( LEFT_MOTOR, 0, 0);
+	nxt_motor_set_speed( RIGHT_MOTOR, 0, 0);
+	nxt_motor_set_speed( TAIL_MOTOR, 0, 0);
+	nxt_motor_set_count( RIGHT_MOTOR, 0);
+	nxt_motor_set_count( LEFT_MOTOR, 0);
+	nxt_motor_set_count( TAIL_MOTOR, 0);
+
+	/*----------------------------------------------*/
+	/*	初期化:センサー								*/
+	/*----------------------------------------------*/
+	g_Sensor.light = 600;
+	//g_Sensor.pre_light = 600;
+	g_Sensor.gyro = 600;
+	g_Sensor.touch = 0;
+	g_Sensor.distance = 255;
+	g_Sensor.count_left = 0;
+	g_Sensor.count_right = 0;
+	g_Sensor.battery = 600;
+
+	g_Sensor.object_is_left = 0;
+	g_Sensor.object_is_right = 0;
+
+
+	/*----------------------------------------------*/
+	/*	初期化:アクチュエーター						*/
+	/*----------------------------------------------*/
+	g_Actuator.forward = 0;
+	g_Actuator.turn = 0;
+	g_Actuator.black = 800;
+	g_Actuator.white = 400;
+	g_Actuator.target_gray = 600;
+	g_Actuator.target_gray_base = g_Actuator.target_gray;
+	g_Actuator.gyro_offset = 610;
+	g_Actuator.gyro_offset_base = g_Actuator.gyro_offset;
+	g_Actuator.StandMode = 0;
+	g_Actuator.TraceMode = 0;
+	g_Actuator.target_tail = 0;
+	g_Actuator.step_offset = 10000;
+	g_Actuator.gray_offset = 10000;
+	g_Actuator.color_threshold = 660;
+	g_Actuator.P_gain = 1.0;
+	g_Actuator.I_gain = 0.0;
+	g_Actuator.D_gain = 0.0;
+
+	g_Actuator.TP_gain = 0.8;
+
+	g_Actuator.color_threshold = g_Actuator.target_gray;
+
+
+	/*----------------------------------------------*/
+	/*	初期化:コントローラ							*/
+	/*----------------------------------------------*/
+	g_Controller.light_status = 0;
+	g_Controller.target_distance = 0;
+	g_Controller.timer_flag = 0;
+	g_Controller.start_time = 0;
+	g_Controller.target_time = 0;
+	g_Controller.motor_counter_flag = 0;
+	g_Controller.start_motor_count = 0;
+	g_Controller.target_motor_count = 0;
+	g_Controller.pivot_turn_flag = 0;
+	g_Controller.start_pivot_turn_encoder_R = 0;
+	g_Controller.target_pivot_turn_angle_R = 0;
+	g_Controller.object_left_flag = 0;
+	g_Controller.object_right_flag = 0;
+	g_Controller.object_left_length = 0;
+	g_Controller.object_right_length = 0;
+	g_Controller.object_judge = 0;
+}
+
 
 /*
-###################################################################
-	Task
+#########################################################################################################################
+	｢ETロボコンkfkf｣用タスク&関数
+#########################################################################################################################
+*/
+/*
+===============================================================================================
 	name: TaskLogger
-	description:
-###################################################################
+	Description: ロギング用タスク
+===============================================================================================
 */
 TASK(TaskLogger)
 {
-	//==========================================
-	//  Calculation for logging
-	//==========================================
+	/*----------------------------------------------*/
+	/*	ロギングのための計算						*/
+	/*----------------------------------------------*/
 	S8 ang = g_Sensor.count_right - g_Controller.start_pivot_turn_encoder_R - g_Controller.target_pivot_turn_angle_R;
 	int rest_motor_count = (g_Sensor.count_left + g_Sensor.count_right) / 2 - g_Controller.start_motor_count - g_Controller.target_motor_count;
-	
-	//==========================================
-	//  Select log type
-	//==========================================
+
+
+	/*----------------------------------------------*/
+	/*	ロギング情報の選択							*/
+	/*----------------------------------------------*/
 	switch(g_LogType)
 	{
 		case LOG_STATE:
@@ -655,161 +769,49 @@ TASK(TaskLogger)
 
 	}
 
-		//==========================================
-		//  Termination of Task
-		//==========================================
+		/*----------------------------------------------*/
+		/*	タスク終了									*/
+		/*----------------------------------------------*/
 		TerminateTask();
 }
 
 
-/************************************************/
-/*	Function									*/
-/************************************************/
-/*
-===============================================================================================
-	name: InitNXT
-	Description: ??
- 	Parameter: no
-	Return Value: no
-===============================================================================================
-*/
-void InitNXT()
-{
-	U8 i = 0;
-
-	//==========================================
-	//	StateMachine
-	//==========================================
-	InitKFKF();
-
-	//==========================================
-	//	Global variables
-	//==========================================
-	g_CalibCnt = 0;
-	g_CalibGyroSum = 0;
-	g_CalibLightSum = 0;
-	g_CalibFlag = 0;
-
-	g_TouchSt = 0;
-	g_SonarCnt = 0;
-	g_LightCnt = 0;
-	g_LightAve = 0;
-	for(i=0;i<LIGHT_BUFFER_LENGTH_MAX;i++)
-	{
-		g_LightBuffer[i] = 0;
-	}
-
-	//==========================================
-	//	Motor & balancer
-	//==========================================
-	balance_init();
-	nxt_motor_set_speed( LEFT_MOTOR, 0, 0);
-	nxt_motor_set_speed( RIGHT_MOTOR, 0, 0);
-	nxt_motor_set_speed( TAIL_MOTOR, 0, 0);
-	nxt_motor_set_count( RIGHT_MOTOR, 0);
-	nxt_motor_set_count( LEFT_MOTOR, 0);
-	nxt_motor_set_count( TAIL_MOTOR, 0);
-
-	//==========================================
-	//	Sensor variables
-	//==========================================
-	g_Sensor.light = 600;
-	//g_Sensor.pre_light = 600;
-	g_Sensor.gyro = 600;
-	g_Sensor.touch = 0;
-	g_Sensor.distance = 255;
-	g_Sensor.count_left = 0;
-	g_Sensor.count_right = 0;
-	g_Sensor.battery = 600;
-
-	g_Sensor.object_is_left = 0;
-	g_Sensor.object_is_right = 0;
-
-
-	//==========================================
-	//	Controller variables
-	//==========================================
-	g_Actuator.forward = 0;
-	g_Actuator.turn = 0;
-	g_Actuator.black = 800;
-	g_Actuator.white = 400;
-	g_Actuator.target_gray = 600;
-	g_Actuator.target_gray_base = g_Actuator.target_gray;
-	//g_Actuator.threshold_gray = g_Actuator.target_gray;
-	g_Actuator.gyro_offset = 610;
-	g_Actuator.gyro_offset_base = g_Actuator.gyro_offset;
-	g_Actuator.StandMode = 0;
-	g_Actuator.TraceMode = 0;
-	g_Actuator.target_tail = 0;
-	g_Actuator.step_offset = 10000;
-	g_Actuator.gray_offset = 10000;
-	g_Actuator.color_threshold = 660;
-	g_Actuator.P_gain = 1.0;
-	g_Actuator.I_gain = 0.0;
-	g_Actuator.D_gain = 0.0;
-
-	g_Actuator.TP_gain = 0.8;
-
-	g_Actuator.color_threshold = g_Actuator.target_gray;
-
-	//g_Actuator.prev_light_value = g_Actuator.color_threshold;
-
-	//==========================================
-	//	Event Status variables
-	//==========================================
-	g_Controller.light_status = 0;
-	g_Controller.target_distance = 0;
-	g_Controller.timer_flag = 0;
-	g_Controller.start_time = 0;
-	g_Controller.target_time = 0;
-	g_Controller.motor_counter_flag = 0;
-	g_Controller.start_motor_count = 0;
-	g_Controller.target_motor_count = 0;
-	g_Controller.pivot_turn_flag = 0;
-	g_Controller.start_pivot_turn_encoder_R = 0;
-	g_Controller.target_pivot_turn_angle_R = 0;
-	g_Controller.object_left_flag = 0;
-	g_Controller.object_right_flag = 0;
-	g_Controller.object_left_length = 0;
-	g_Controller.object_right_length = 0;
-	g_Controller.object_judge = 0;
-}
-
 /*
 ===============================================================================================
 	name: EventSensor
-	Description: ??
+	Description: 遷移イベントのセンシング
 		Event
 		ID description
-		00	transition with no event
-		01	touch
-		02	white (not correctly implemented)
-		03	black (not correctly implemented)
-		04	gray marker
-		05	step
-		06	seesaw tilts
-		07	dropped from the seesaw
-		08	sonar sensor
-		09	set time is up
-		10 reach the set motor encoder count
-		11 receive the bluetooth start signal
-		12 finish circling
-		13 (some event1)
-		14 (some event2)
+		00	何もしないで遷移
+		01	タッチ
+		02	白
+		03	黒
+		04	グレーマーカ検知
+		05	段差検知
+		06	<使用しない>
+		07	<使用しない>
+		08	ソナーセンサが反応
+		09	タイマー
+		10	モータ回転数完了
+		11	BTスタート信号受信
+		12	超信地旋回
+		13	左に物体があった
+		14	右に物体があった
  	Parameter: no
 	Return Value: no
 ===============================================================================================
 */
 void EventSensor(){
 
-	//--------------------------------
-	//	Event:auto
-	//--------------------------------
+
+	/*----------------------------------------------*/
+	/*	何もしないで遷移							*/
+	/*----------------------------------------------*/
 	setEvent(AUTO);
 
-	//--------------------------------
-	//	Event:touch
-	//--------------------------------
+	/*----------------------------------------------*/
+	/*	タッチ										*/
+	/*----------------------------------------------*/
 	if( g_Sensor.touch == 1 )
 	{
 		setEvent(TOUCH);
@@ -952,7 +954,7 @@ void EventSensor(){
 
 /*
 ===============================================================================================
-	name: setController
+	name: ActionSet
 	Description: ??
 		Action
 		ID description
@@ -983,7 +985,7 @@ void EventSensor(){
 	Return Value: no
 ===============================================================================================
 */
-void setController(void)
+void ActionSet(void)
 {
 	State_t state = getCurrentState();
 

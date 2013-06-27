@@ -24,11 +24,5 @@ typedef enum LogType
 	LOG_LOOP = 9
 }LogType_e;
 
-typedef struct tag_Logger{
-
-	enum LogType type;
-
-} Logger_t;
-
 
 #endif
