@@ -483,6 +483,9 @@ TASK(TaskSensor)
 TASK(TaskActuator)
 {
 
+	//DEBUG
+	ecrobot_bt_data_logger( (S8)g_Actuator.turn, (S8)g_Actuator.forward );
+
 	/*--------------------------*/
 	/*	PWMの初期化				*/
 	/*--------------------------*/
