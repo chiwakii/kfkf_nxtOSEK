@@ -63,6 +63,7 @@ StateMachine_t g_StateMachine;
 static U16 g_PacketCnt;
 static U16 g_Eptr;
 static U16 g_Sptr;
+static U16 g_ReceiveLen;
 
 /*------------------*/
 /* 一時保管用配列	*/
@@ -79,7 +80,10 @@ U8 ReceiveBT(void){
     U16 j = 0;
     U8 comm_end = 0;
 
-    ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
+    g_ReceiveLen = ( ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE) / sizeof(S16) );
+
+    //DEBUG
+    ecrobot_bt_data_logger( (S8)g_ReceiveLen, 0 );
 
 /*======================================================================================*/
 /*  最後の受信パケットを受信したら														*/
@@ -360,6 +364,11 @@ void InitKFKF(void)
 	for(i=0;i<RESERVED_STATES_SIZE;i++)
 	{
 		states[i] = 0;
+	}
+
+	for(i=0;i<BT_RCV_BUF_SIZE;i++)
+	{
+		bt_receive_buf[i] = 0;
 	}
 }
 
