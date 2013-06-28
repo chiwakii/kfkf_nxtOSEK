@@ -27,7 +27,7 @@
 typedef struct tag_StateMachine {
 	S16 num_of_events;
 	S16 num_of_states;
-	U16 *events;
+	S16 *events;
 	State_t *states;
 	S16 current_state;
 	U8 *event_flag;
@@ -39,7 +39,8 @@ typedef struct tag_StateMachine {
 ===============================================================================================
 */
 /* Bluetooth用バッファ */
-S16 bt_receive_buf[BT_RCV_BUF_SIZE];
+//S16 bt_receive_buf[BT_RCV_BUF_SIZE];
+U8 bt_receive_buf[BT_RCV_BUF_SIZE];
 /* ETロボコンkfkf管理用変数 */
 StateMachine_t g_StateMachine;
 
@@ -80,10 +81,10 @@ U8 ReceiveBT(void){
     U16 j = 0;
     U8 comm_end = 0;
 
-    g_ReceiveLen = ( ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE) / sizeof(S16) );
+    g_ReceiveLen = (U16)ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 
     //DEBUG
-    ecrobot_bt_data_logger( (S8)g_ReceiveLen, 0 );
+    ecrobot_bt_data_logger( (S8)g_ReceiveLen, -44 );
 
 /*======================================================================================*/
 /*  最後の受信パケットを受信したら														*/
@@ -93,7 +94,7 @@ U8 ReceiveBT(void){
     	/*--------------------------*/
 		/*	eventの割り当て			*/
     	/*--------------------------*/
-        g_StateMachine.events = (U16 *)calloc( g_Eptr, sizeof(U16) );
+        g_StateMachine.events = (S16 *)calloc( g_Eptr, sizeof(S16) );
         if( g_StateMachine.events == NULL )
         {
             display_clear(0);
@@ -108,7 +109,7 @@ U8 ReceiveBT(void){
         {
         	for(i=0;i<g_Eptr;i++)
         	{
-        		g_StateMachine.events[i] = (U16)events[i];
+        		g_StateMachine.events[i] = (S16)events[i];
         	}
 
         	comm_end++;

@@ -50,19 +50,20 @@ enum ActType
 /*--------------------------*/
 enum EvtType
 {
-	AUTO = 0,
-	TOUCH = 1,
-	WHITE = 2,
-	BLACK = 3,
-	GRAY_MARKER = 4,
-	STEP = 5,
-	SONAR = 8,
-	TIMER = 9,
-	MOTOR_COUNT = 10,
-	BT_START = 11,
-	PIVOT_TURN_END = 12,
-	BOTTLE_LEFT = 13,
-	BOTTLE_RIGHT = 14
+	NO_TRANSITION = 0,
+	AUTO = 1,
+	TOUCH = 2,
+	WHITE = 3,
+	BLACK = 4,
+	GRAY_MARKER = 5,
+	STEP = 6,
+	SONAR = 9,
+	TIMER = 10,
+	MOTOR_COUNT = 11,
+	BT_START = 12,
+	PIVOT_TURN_END = 13,
+	BOTTLE_LEFT = 14,
+	BOTTLE_RIGHT = 15
 };
 
 /*
@@ -96,7 +97,7 @@ S16 getCurrentStateNum(void);
 //
 State_t getCurrentState(void);
 //
-void setEvent(EvtType_e event_id);
+void setEvent(U16 event_id);
 //
 void clearEvent(void);
 // ??
