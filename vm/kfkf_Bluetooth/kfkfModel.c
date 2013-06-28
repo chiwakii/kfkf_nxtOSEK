@@ -27,7 +27,7 @@
 typedef struct tag_StateMachine {
 	S16 num_of_events;
 	S16 num_of_states;
-	EvtType_e *events;
+	U16 *events;
 	State_t *states;
 	S16 current_state;
 	U8 *event_flag;
@@ -60,9 +60,9 @@ StateMachine_t g_StateMachine;
 /*------------------*/
 /* グローバル変数	*/
 /*------------------*/
-static U16 g_PacketCnt = 1;
-static U16 g_Eptr = 0;
-static U16 g_Sptr = 0;
+static U16 g_PacketCnt;
+static U16 g_Eptr;
+static U16 g_Sptr;
 
 /*------------------*/
 /* 一時保管用配列	*/
@@ -89,7 +89,7 @@ U8 ReceiveBT(void){
     	/*--------------------------*/
 		/*	eventの割り当て			*/
     	/*--------------------------*/
-        g_StateMachine.events = (EvtType_e *)calloc( g_Eptr, sizeof(EvtType_e) );
+        g_StateMachine.events = (U16 *)calloc( g_Eptr, sizeof(U16) );
         if( g_StateMachine.events == NULL )
         {
             display_clear(0);
@@ -104,7 +104,7 @@ U8 ReceiveBT(void){
         {
         	for(i=0;i<g_Eptr;i++)
         	{
-        		g_StateMachine.events[i] = (EvtType_e)events[i];
+        		g_StateMachine.events[i] = (U16)events[i];
         	}
 
         	comm_end++;
@@ -131,7 +131,7 @@ U8 ReceiveBT(void){
         	for(j=0;j<g_StateMachine.num_of_states;j++)
         	{
         		g_StateMachine.states[j].state_no = states[i];
-        		g_StateMachine.states[j].action_no = (ActType_e)states[i+1];
+        		g_StateMachine.states[j].action_no = (U16)states[i+1];
        			g_StateMachine.states[j].value0 = states[i+2];
        			g_StateMachine.states[j].value1 = states[i+3];
        			g_StateMachine.states[j].value2 = states[i+4];
@@ -235,11 +235,11 @@ State_t getCurrentState(void)
 ===============================================================================================
 	name: setEvent
 	Description: 発生したイベントのフラグを立てる
-	Parameter: イベントの種類(EvtType_e)
+	Parameter: イベントの種類(U16)
 	Return Value: no
 ===============================================================================================
 */
-void setEvent(EvtType_e event_id)
+void setEvent(U16 event_id)
 {
 	g_StateMachine.event_flag[(U16)event_id] = 1;
 }

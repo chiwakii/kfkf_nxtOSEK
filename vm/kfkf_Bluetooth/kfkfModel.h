@@ -21,9 +21,8 @@
 /*--------------------------*/
 /* 	ETロボコンkfkfのaction	*/
 /*--------------------------*/
-typedef enum ActType
+enum ActType
 {
-	NO_TRANSITION = -1,
 	DO_NOTHING = 0,
 	BALANCE_STOP = 1,
 	BALANCE_LINETRACE = 2,
@@ -44,12 +43,12 @@ typedef enum ActType
 	SEARCH_BOTTLE_LEFT = 22,
 	SEARCH_BOTTLE_END = 23,
 	SEARCH_BOTTLE_JUDGE = 24
-}ActType_e;
+};
 
 /*--------------------------*/
 /* 	ETロボコンkfkfのevent	*/
 /*--------------------------*/
-typedef enum EvtType
+enum EvtType
 {
 	AUTO = 0,
 	TOUCH = 1,
@@ -64,7 +63,7 @@ typedef enum EvtType
 	PIVOT_TURN_END = 12,
 	BOTTLE_LEFT = 13,
 	BOTTLE_RIGHT = 14
-}EvtType_e;
+};
 
 /*
 ===============================================================================================
@@ -77,7 +76,7 @@ typedef enum EvtType
 typedef struct tag_State
 {
 	S16 state_no;
-	ActType_e action_no;
+	U16 action_no;
 	S16 value0;
 	S16 value1;
 	S16 value2;

@@ -24,7 +24,7 @@ DeclareTask(TaskLogger);
 /*======================================*/
 /*	列挙型定義							*/
 /*======================================*/
-typedef enum _MainTaskState
+enum _MainTaskState
 {
 	INIT = 0,
 	BTCOMM,
@@ -32,7 +32,7 @@ typedef enum _MainTaskState
 	WHITECALIB,
 	BLACKCALIB,
 	ACTION
-}MainTaskState_e;
+};
 
 /*======================================*/
 /*	プロトライプ宣言					*/
@@ -71,7 +71,7 @@ static Actuator_t g_Actuator;
 /*--------------------------*/
 /*	ロガー用				*/
 /*--------------------------*/
-static LogType_e g_LogType = LOG_NO;
+static S8 g_LogType = LOG_NO;
 
 /*==================================================*/
 /*	Hook関数: ecrobot_device_initialize				*/
@@ -148,7 +148,7 @@ static U8 g_CalibCnt;
 static U32 g_CalibGyroSum;
 static U32 g_CalibLightSum;
 static U8 g_CalibFlag;
-static MainTaskState_e g_MTState = INIT;
+static U8 g_MTState = INIT;
 
 /*==================================================*/
 /*	タスク											*/
