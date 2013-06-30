@@ -25,7 +25,7 @@
 
 /* ETロボコンkfkf管理用構造体 */
 typedef struct tag_StateMachine {
-	S16 num_of_events;
+	S16 max_of_events;
 	S16 num_of_states;
 	S16 *events;
 	State_t *states;
@@ -64,13 +64,13 @@ StateMachine_t g_StateMachine;
 static U16 g_PacketCnt;
 static U16 g_Eptr;
 static U16 g_Sptr;
-static U16 g_ReceiveLen;
+static U8 g_STurn;
 
 /*------------------*/
 /* 一時保管用配列	*/
 /*------------------*/
-static S16 events[RESERVED_EVENT_SIZE];
-static S16 states[RESERVED_STATES_SIZE];
+//static S16 events[RESERVED_EVENT_SIZE];
+//static S16 states[RESERVED_STATES_SIZE];
 
 /*------------------*/
 /*	  関数			*/
@@ -81,20 +81,37 @@ U8 ReceiveBT(void){
     U16 j = 0;
     U8 comm_end = 0;
 
-    g_ReceiveLen = (U16)ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
+    ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
 
     //DEBUG
-    ecrobot_bt_data_logger( (S8)g_ReceiveLen, -44 );
+    ecrobot_bt_data_logger( (S8)bt_receive_buf[1], -44 );
 
 /*======================================================================================*/
 /*  最後の受信パケットを受信したら														*/
 /*======================================================================================*/
     if( bt_receive_buf[1] == 255 )
     {
+    	comm_end = 1;
+
+    	g_StateMachine.current_state = 0;
+    	g_StateMachine.event_flag = (U8 *)calloc( g_StateMachine.max_of_events, sizeof(U8) );
+    	clearEvent();
+
+    	g_PacketCnt = 0;
+    }
+
+/*======================================================================================*/
+/*  受信パケットの種類が"1"																*/
+/*======================================================================================*/
+    if(bt_receive_buf[0] == g_PacketCnt && bt_receive_buf[1] == 1)
+    {
+    	g_StateMachine.num_of_states = bt_receive_buf[2];
+    	g_StateMachine.max_of_events = bt_receive_buf[3];
+
     	/*--------------------------*/
 		/*	eventの割り当て			*/
     	/*--------------------------*/
-        g_StateMachine.events = (S16 *)calloc( g_Eptr, sizeof(S16) );
+        g_StateMachine.events = (S16 *)calloc( g_StateMachine.num_of_states * g_StateMachine.max_of_events, sizeof(S16) );
         if( g_StateMachine.events == NULL )
         {
             display_clear(0);
@@ -104,15 +121,6 @@ U8 ReceiveBT(void){
             display_string("Malloc Err:event");
             display_update();
             ecrobot_sound_tone(880, 50, 30);
-        }
-        else
-        {
-        	for(i=0;i<g_Eptr;i++)
-        	{
-        		g_StateMachine.events[i] = (S16)events[i];
-        	}
-
-        	comm_end++;
         }
 
     	/*--------------------------*/
@@ -129,44 +137,6 @@ U8 ReceiveBT(void){
             display_update();
             ecrobot_sound_tone(880, 50, 30);
         }
-        else
-        {
-
-        	i = 0;
-        	for(j=0;j<g_StateMachine.num_of_states;j++)
-        	{
-        		g_StateMachine.states[j].state_no = states[i];
-        		g_StateMachine.states[j].action_no = (U16)states[i+1];
-       			g_StateMachine.states[j].value0 = states[i+2];
-       			g_StateMachine.states[j].value1 = states[i+3];
-       			g_StateMachine.states[j].value2 = states[i+4];
-       			g_StateMachine.states[j].value3 = states[i+5];
-       			i = i + 6;
-       		}
-
-        	comm_end++;
-        }
-
-        if(comm_end >= 2)
-        {
-        	comm_end = 1;
-
-        	g_StateMachine.current_state = 0;
-
-        	g_StateMachine.event_flag = (U8 *)calloc( g_StateMachine.num_of_events, sizeof(U8) );
-        	clearEvent();
-
-        	g_PacketCnt = 0;
-        }
-    }
-
-/*======================================================================================*/
-/*  受信パケットの種類が"1"																*/
-/*======================================================================================*/
-    if(bt_receive_buf[0] == g_PacketCnt && bt_receive_buf[1] == 1)
-    {
-    	g_StateMachine.num_of_states = bt_receive_buf[2];
-    	g_StateMachine.num_of_events = bt_receive_buf[3];
 		
     	g_PacketCnt++;
     }
@@ -176,10 +146,9 @@ U8 ReceiveBT(void){
 /*======================================================================================*/
     if(bt_receive_buf[0] == g_PacketCnt && bt_receive_buf[1] == 2)
     {
-    	for(i=2;i<16;i++)
+    	for(i=2;i<16 && g_Eptr<g_StateMachine.num_of_states * g_StateMachine.max_of_events;i++)
     	{
-    		//*(events + g_Eptr) = *(bt_receive_buf + i);
-    		events[g_Eptr] = bt_receive_buf[i];
+    		g_StateMachine.events[g_Eptr] = bt_receive_buf[i];
     		g_Eptr++;
     	}
 
@@ -191,11 +160,39 @@ U8 ReceiveBT(void){
 /*======================================================================================*/
     if(bt_receive_buf[0] == g_PacketCnt && bt_receive_buf[1] == 3)
     {
-    	for(i=2;i<16;i++)
+    	for(i=2;i<16 && g_Sptr<g_StateMachine.num_of_states;i++)
     	{
-    		//*(states + g_Sptr) = *(bt_receive_buf + i);
-    		states[g_Sptr] = bt_receive_buf[i];
-    		g_Sptr++;
+    		if( g_STurn == 0 )
+    		{
+    			g_StateMachine.states[g_Sptr].state_no = bt_receive_buf[i];
+    			g_STurn++;
+    		}
+    		else if( g_STurn == 1 )
+    		{
+    			g_StateMachine.states[g_Sptr].action_no = bt_receive_buf[i];
+    			g_STurn++;
+    		}
+    		else if( g_STurn == 2 )
+    		{
+    			g_StateMachine.states[g_Sptr].value0 = bt_receive_buf[i];
+    			g_STurn++;
+    		}
+    		else if( g_STurn == 3 )
+    		{
+    			g_StateMachine.states[g_Sptr].value1 = bt_receive_buf[i];
+    			g_STurn++;
+    		}
+    		else if( g_STurn == 4 )
+    		{
+    			g_StateMachine.states[g_Sptr].value2 = bt_receive_buf[i];
+    			g_STurn++;
+    		}
+    		else if( g_STurn == 5 )
+    		{
+    			g_StateMachine.states[g_Sptr].value3 = bt_receive_buf[i];
+    			g_STurn = 0;
+    			g_Sptr++;
+    		}
     	}
 
     	g_PacketCnt++;
@@ -261,7 +258,7 @@ void clearEvent(void)
 {
 	U16 i = 0;
 
-	for(i=0;i<g_StateMachine.num_of_events;i++){
+	for(i=0;i<g_StateMachine.max_of_events;i++){
 		g_StateMachine.event_flag[i] = 0;
 	}
 }
@@ -278,13 +275,13 @@ void setNextState(void) {
 	S8 next_state = -1;
 	S16 i = 0;
 
-	for( i=0;i<g_StateMachine.num_of_events;i++ ){
+	for( i=0;i<g_StateMachine.max_of_events;i++ ){
 
 		if( g_StateMachine.event_flag[i] == 1)
 		{
-			if( g_StateMachine.events[i + g_StateMachine.current_state * g_StateMachine.num_of_events] != -1 )
+			if( g_StateMachine.events[i + g_StateMachine.current_state * g_StateMachine.max_of_events] != -1 )
 			{
-				next_state = g_StateMachine.events[i + g_StateMachine.current_state * g_StateMachine.num_of_events];
+				next_state = g_StateMachine.events[i + g_StateMachine.current_state * g_StateMachine.max_of_events];
 			}
 		}
 	}
@@ -346,7 +343,7 @@ void InitKFKF(void)
 
 	free( g_StateMachine.event_flag );
 
-	g_StateMachine.num_of_events = 0;
+	g_StateMachine.max_of_events = 0;
 	g_StateMachine.num_of_states = 0;
 	g_StateMachine.current_state = 0;
 
@@ -357,6 +354,7 @@ void InitKFKF(void)
 	g_PacketCnt = 1;
 	g_Eptr = 0;
 	g_Sptr = 0;
+	g_STurn = 0;
 
 	for(i=0;i<RESERVED_EVENT_SIZE;i++)
 	{
@@ -373,3 +371,37 @@ void InitKFKF(void)
 	}
 }
 
+
+void Bluetohht_dbg(void)
+{
+	g_StateMachine.num_of_states = 8;
+	g_StateMachine.max_of_events = 16;
+
+
+    g_StateMachine.events = (S16 *)calloc( g_Eptr, sizeof(S16) );
+    if( g_StateMachine.events == NULL )
+    {
+        display_clear(0);
+        display_goto_xy(0, 1);
+        display_string("Pre:Bluetooth");
+        display_goto_xy(0, 2);
+        display_string("Malloc Err:event");
+        display_update();
+        ecrobot_sound_tone(880, 50, 30);
+    }
+    else
+    {
+    	for(i=0;i<g_Eptr;i++)
+    	{
+    		g_StateMachine.events[i] = (S16)events[i];
+    	}
+
+    	comm_end++;
+    }
+
+	g_StateMachine.event_flag = (U8 *)calloc( g_StateMachine.max_of_events, sizeof(U8) );
+
+	g_StateMachine.current_state = 0;
+	g_PacketCnt = 0;
+
+}

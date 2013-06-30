@@ -198,6 +198,11 @@ TASK(TaskMain)
 				g_MTState = TARGETCALIB;
 			}
 
+			if( ecrobot_is_ENTER_button_pressed() == 1 )
+			{
+				Bluetohht_dbg();
+			}
+
 			break;
 
 		/*----------------------------------------------*/

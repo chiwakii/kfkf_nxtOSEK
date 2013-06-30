@@ -105,4 +105,7 @@ void setNextState(void);
 //
 S8 BluetoothStart(void);
 
+//
+void Bluetohht_dbg(void);
+
 #endif
