@@ -78,7 +78,6 @@ static U8 g_STurn;
 U8 ReceiveBT(void){
 	
     U16 i = 0;
-    U16 j = 0;
     U8 comm_end = 0;
 
     ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
@@ -355,7 +354,7 @@ void InitKFKF(void)
 	g_Eptr = 0;
 	g_Sptr = 0;
 	g_STurn = 0;
-
+/*
 	for(i=0;i<RESERVED_EVENT_SIZE;i++)
 	{
 		events[i] = 0;
@@ -364,7 +363,7 @@ void InitKFKF(void)
 	{
 		states[i] = 0;
 	}
-
+*/
 	for(i=0;i<BT_RCV_BUF_SIZE;i++)
 	{
 		bt_receive_buf[i] = 0;
@@ -374,6 +373,7 @@ void InitKFKF(void)
 
 void Bluetohht_dbg(void)
 {
+	/*
 	g_StateMachine.num_of_states = 8;
 	g_StateMachine.max_of_events = 16;
 
@@ -403,5 +403,6 @@ void Bluetohht_dbg(void)
 
 	g_StateMachine.current_state = 0;
 	g_PacketCnt = 0;
-
+*/
 }
+
