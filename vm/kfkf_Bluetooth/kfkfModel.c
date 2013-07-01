@@ -166,7 +166,7 @@ U8 ReceiveBT(void){
     		}
     		else if( g_STurn == 1 )
     		{
-    			g_StateMachine.states[g_Sptr].action_no = bt_receive_buf[i];
+    			g_StateMachine.states[g_Sptr].action_no = (U16)bt_receive_buf[i];
     			g_STurn++;
     		}
     		else if( g_STurn == 2 )
@@ -215,6 +215,19 @@ U8 ReceiveBT(void){
 S16 getCurrentStateNum()
 {
 	return g_StateMachine.current_state;
+}
+
+/*
+===============================================================================================
+	name: getCurrentStateAct
+	Description: 現在の状態のアクション番号をわたす
+	Parameter: no
+	Return Value: 状態のアクション番号(U16)
+===============================================================================================
+*/
+U16 getCurrentStateNum()
+{
+	return g_StateMachine.states[g_StateMachine.current_state].action_no;
 }
 
 /*

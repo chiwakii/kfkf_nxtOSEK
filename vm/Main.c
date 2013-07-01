@@ -722,7 +722,7 @@ TASK(TaskLogger)
 	switch(g_LogType)
 	{
 		case LOG_STATE:
-			ecrobot_bt_data_logger( (S8)getCurrentStateNum(), 0 );
+			ecrobot_bt_data_logger( (S8)getCurrentStateNum(), (S8)getCurrentStateAct() );
 			break;
 
 		case LOG_TURN:
