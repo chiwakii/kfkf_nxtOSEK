@@ -97,7 +97,7 @@ U8 ReceiveBT(void);
 // Return current kfkf model state.
 S16 getCurrentStateNum(void);
 //
-S16 getCurrentStateAct(void);
+U16 getCurrentStateAct(void);
 //
 State_t getCurrentState(void);
 //

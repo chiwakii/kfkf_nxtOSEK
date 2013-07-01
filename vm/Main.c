@@ -156,7 +156,7 @@ static U8 g_MTState = INIT;
 TASK(TaskMain)
 {
 
-	switch(g_MTState)
+	switch( g_MTState )
 	{
 		/*----------------------------------------------*/
 		/*	初期化										*/
@@ -176,12 +176,11 @@ TASK(TaskMain)
 			/* 状態遷移: BTCOMM */
 			g_MTState = BTCOMM;
 			break;
-
 		/*----------------------------------------------*/
 		/*	kfkfモデル受信								*/
 		/*----------------------------------------------*/
 		case BTCOMM:
-			if(ReceiveBT() == 1)
+			if( ReceiveBT() == 1 )
 			{
 
 		        display_clear(0);
@@ -199,7 +198,6 @@ TASK(TaskMain)
 			}
 
 			break;
-
 		/*----------------------------------------------*/
 		/*	キャリブレーション(ライン境目&ジャイロ)		*/
 		/*----------------------------------------------*/
@@ -245,7 +243,6 @@ TASK(TaskMain)
 				g_MTState = WHITECALIB;
 			}
 			break;
-
 		/*----------------------------------------------*/
 		/*	キャリブレーション(白色)					*/
 		/*----------------------------------------------*/
@@ -289,7 +286,6 @@ TASK(TaskMain)
 				g_MTState =  BLACKCALIB;
 			}
 			break;
-
 		/*----------------------------------------------*/
 		/*	キャリブレーション(黒色)					*/
 		/*----------------------------------------------*/
@@ -335,7 +331,6 @@ TASK(TaskMain)
 				g_MTState = ACTION;
 			}
 			break;
-
 		/*----------------------------------------------*/
 		/*	kfkfモデル動作								*/
 		/*----------------------------------------------*/
@@ -889,7 +884,7 @@ void EventSensor(){
 	//--------------------------------
    	if( g_Controller.motor_counter_flag == 1 )
    	{
-   		int motor_count = (g_Sensor.count_left + g_Sensor.count_right) / 2;
+   		int motor_count = (int)( (g_Sensor.count_left + g_Sensor.count_right) / 2 );
    		if( abs(motor_count - g_Controller.start_motor_count) > abs(g_Controller.target_motor_count) )
    		{
    			setEvent(MOTOR_COUNT);
@@ -991,7 +986,8 @@ void ActionSet(void)
 
 	switch( state.action_no )
 	{
-		case DO_NOTHING://do nothing
+		/* Do Nothing */
+		case DO_NOTHING:
 			g_Actuator.forward = 0;
 			g_Actuator.turn = 0;
 
@@ -999,8 +995,8 @@ void ActionSet(void)
 			g_Actuator.StandMode = 1;
 
 			break;
-
-		case BALANCE_STOP://stop
+		/* Stop without the tail */
+		case BALANCE_STOP:
 			g_Actuator.forward = 0;
 			g_Actuator.turn = 0;
 
@@ -1008,47 +1004,44 @@ void ActionSet(void)
 			g_Actuator.StandMode = 1;
 
 			break;
-
-		// linetrace
-		//@param foward:=value0
-		//@param gyro_offset:=value1
+		/* linetrace with balance */
+		/* @param0: foward = value0 */
+		/* @param1: gyro_offset = gyro_offset_base + value1 */
 		case BALANCE_LINETRACE:
-			g_Actuator.forward = state.value0;
-			g_Actuator.gyro_offset = g_Actuator.gyro_offset_base + state.value1;
+			g_Actuator.forward = (S8)state.value0;
+			g_Actuator.gyro_offset = (U16)(g_Actuator.gyro_offset_base + state.value1);
 
 			g_Actuator.TraceMode = 1;
 			g_Actuator.StandMode = 1;
 
 			break;
-
-		//change the gray threshold
-		//@param new threshold:=value0
+		/* change gray(linetrace target) */
+		/* @param0: target_gray = target_gray_base + value0 */
 		case CHANGE_GRAY:
-			g_Actuator.target_gray = g_Actuator.target_gray_base + state.value0;
+			g_Actuator.target_gray = (U16)(g_Actuator.target_gray_base + state.value0);
 
 			break;
-
-		//run with no linetrace without balance
-		//@param target_tail:=value0
-		//@param tail_run_speed :=value1
-		//@param turn :=value2
+		/* free run with tail */
+		/* @param0: target_tail = value0 */
+		/* @param1: forward = value1 */
+		/* @param2: turn = value2 */
+		/* @param3: TP_gain = value3 / 100 */
 		case TAIL_RUN_FREEDOM:
-			g_Actuator.target_tail = state.value0;
-			g_Actuator.forward = state.value1;
-			g_Actuator.turn = state.value2;
+			g_Actuator.target_tail = (S8)state.value0;
+			g_Actuator.forward = (S8)state.value1;
+			g_Actuator.turn = (S8)state.value2;
 			g_Actuator.TP_gain = (F32)state.value3 / 100;
 
 			g_Actuator.TraceMode = 0;
 			g_Actuator.StandMode = 2;
 			break;
-
-		//set timer
+		/* set timer */
 		//@param limit_timer:=value0 i.e. 20 = 2.0sec
 		case TIMER_SET:
 			if( g_Controller.timer_flag == 0 )
 			{
 				g_Controller.start_time = systick_get_ms();
-				g_Controller.target_time = state.value0 * 100;
+				g_Controller.target_time = (U32)(state.value0 * 100);
 				g_Controller.timer_flag = 1;
 			}
 
@@ -1058,7 +1051,7 @@ void ActionSet(void)
 			if( g_Controller.motor_counter_flag == 0 )
 			{
 				g_Controller.start_motor_count = (g_Sensor.count_left + g_Sensor.count_right) / 2;
-				g_Controller.target_motor_count = state.value0;
+				g_Controller.target_motor_count = (int)state.value0;
 				g_Controller.motor_counter_flag = 1;
 			}
 
@@ -1079,7 +1072,7 @@ void ActionSet(void)
 		//set gyro offset for steps
 		//@param step_offset := value0
 		case STEP_OFFSET_SET:
-			g_Actuator.step_offset = state.value0;
+			g_Actuator.step_offset = (U16)state.value0;
 			//g_Sensor.GYRO_BUFFER_LENGTH = state.value1;
 			break;
 
@@ -1095,14 +1088,15 @@ void ActionSet(void)
  		case TAIL_LINETRACE:
 			g_Actuator.TraceMode = 1;
 			g_Actuator.StandMode = 2;
-			g_Actuator.target_tail = state.value0;
+			g_Actuator.target_tail = (U8)state.value0;
 			//g_Actuator.tail_run_speed = state.value1;
-			g_Actuator.forward = state.value1;
+			g_Actuator.forward = (S8)state.value1;
 			g_Actuator.TP_gain = (F32)state.value2 / 100;
 			break;
 
-		//circling
-		//@param angle to turn
+		/* Pivot turn */
+		/* @param0: angle to turn */
+		/* @param1: turn power */
 		case PIVOT_TURN:
 
 			if( g_Controller.pivot_turn_flag == 0 )
@@ -1112,11 +1106,11 @@ void ActionSet(void)
 
 				if( state.value0 >= 0 )
 				{
-					g_Actuator.turn = abs( state.value1 );
+					g_Actuator.turn = abs( (S8)state.value1 );
 				}
 				else
 				{
-					g_Actuator.turn = -1 * abs( state.value1 );
+					g_Actuator.turn = -1 * abs( (S8)state.value1 );
 				}
 
 				g_Controller.start_pivot_turn_encoder_R = g_Sensor.count_right;
@@ -1145,17 +1139,16 @@ void ActionSet(void)
 			g_Actuator.TraceMode = 0;
 			g_Actuator.StandMode = 1;
 
-			g_Actuator.forward = state.value0;
-			g_Actuator.turn = state.value1;
-			g_Actuator.gyro_offset = g_Actuator.gyro_offset_base + state.value2;
+			g_Actuator.forward = (S8)state.value0;
+			g_Actuator.turn = (S8)state.value1;
+			g_Actuator.gyro_offset = (U16)(g_Actuator.gyro_offset_base + state.value2);
 
-			//nxt_motor_set_speed(TAIL_MOTOR,0,1);
 
 			break;
 
 		//set_sonar_sensor
 		case SONAR_SET:
-			g_Controller.target_distance = state.value0;
+			g_Controller.target_distance = (U8)state.value0;
 			break;
 
 		case SERACH_BOTTLE_RIGHT:
@@ -1163,7 +1156,7 @@ void ActionSet(void)
 
 			if( g_Controller.object_right_flag == 0 )
 			{
-				g_Controller.object_right_length = state.value0;
+				g_Controller.object_right_length = (U8)state.value0;
 				g_Controller.object_right_flag = 1;
 			}
 			break;
@@ -1173,7 +1166,7 @@ void ActionSet(void)
 
 			if( g_Controller.object_left_flag == 0 )
 			{
-				g_Controller.object_left_length = state.value0;
+				g_Controller.object_left_length = (U8)state.value0;
 				g_Controller.object_left_flag = 1;
 			}
 

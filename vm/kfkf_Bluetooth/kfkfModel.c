@@ -225,7 +225,7 @@ S16 getCurrentStateNum()
 	Return Value: 状態のアクション番号(U16)
 ===============================================================================================
 */
-U16 getCurrentStateNum()
+U16 getCurrentStateAct()
 {
 	return g_StateMachine.states[g_StateMachine.current_state].action_no;
 }
