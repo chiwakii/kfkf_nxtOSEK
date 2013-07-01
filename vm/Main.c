@@ -15,11 +15,13 @@
 /*======================================*/
 /*	タスク宣言							*/
 /*======================================*/
+
 DeclareCounter(SysTimerCnt);
 DeclareTask(TaskMain);
 DeclareTask(TaskSensor);
 DeclareTask(TaskActuator);
 DeclareTask(TaskLogger);
+
 
 /*======================================*/
 /*	列挙型定義							*/
@@ -637,6 +639,7 @@ void InitNXT()
 	g_Sensor.distance = 255;
 	g_Sensor.count_left = 0;
 	g_Sensor.count_right = 0;
+	g_Sensor.count_tail = 0;
 	g_Sensor.battery = 600;
 
 	g_Sensor.object_is_left = 0;
@@ -657,6 +660,8 @@ void InitNXT()
 	g_Actuator.StandMode = 0;
 	g_Actuator.TraceMode = 0;
 	g_Actuator.target_tail = 0;
+	g_Actuator.tail_pre_dif = 0;
+	g_Actuator.tail_dif = 0;
 	g_Actuator.step_offset = 10000;
 	g_Actuator.gray_offset = 10000;
 	g_Actuator.color_threshold = 660;
@@ -842,11 +847,11 @@ void EventSensor(){
 	if( g_Actuator.gray_offset - 10 < g_Sensor.light_ave && g_Sensor.light_ave < g_Actuator.gray_offset + 10  )
 	{
 		setEvent(GRAY_MARKER);
-		g_Actuator.TraceMode = 2;
+		//g_Actuator.TraceMode = 2;
 	}
 	else
 	{
-		g_Actuator.TraceMode = 1;
+		//g_Actuator.TraceMode = 1;
 	}
 
 	//--------------------------------
@@ -1000,7 +1005,7 @@ void ActionSet(void)
 			g_Actuator.forward = 0;
 			g_Actuator.turn = 0;
 
-			g_Actuator.TraceMode = 1;
+			g_Actuator.TraceMode = 0;
 			g_Actuator.StandMode = 1;
 
 			break;
@@ -1102,6 +1107,7 @@ void ActionSet(void)
 			if( g_Controller.pivot_turn_flag == 0 )
 			{
 				g_Actuator.forward = 0;
+				g_Actuator.TraceMode = 0;
 				g_Actuator.TraceMode = 0;
 
 				if( state.value0 >= 0 )
