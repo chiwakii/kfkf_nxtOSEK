@@ -50,20 +50,20 @@ enum ActType
 /*--------------------------*/
 enum EvtType
 {
-	NO_TRANSITION = 0,
-	AUTO = 1,
-	TOUCH = 2,
-	WHITE = 3,
-	BLACK = 4,
-	GRAY_MARKER = 5,
-	STEP = 6,
-	SONAR = 9,
-	TIMER = 10,
-	MOTOR_COUNT = 11,
-	BT_START = 12,
-	PIVOT_TURN_END = 13,
-	BOTTLE_LEFT = 14,
-	BOTTLE_RIGHT = 15
+	NO_TRANSITION = -1,
+	AUTO = 0,
+	TOUCH = 1,
+	WHITE = 2,
+	BLACK = 3,
+	GRAY_MARKER = 4,
+	STEP = 5,
+	SONAR = 8,
+	TIMER = 9,
+	MOTOR_COUNT = 10,
+	BT_START = 11,
+	PIVOT_TURN_END = 12,
+	BOTTLE_LEFT = 13,
+	BOTTLE_RIGHT = 14
 };
 
 /*
@@ -85,10 +85,12 @@ typedef struct tag_State
 }State_t;
 
 
-//--------------------------------------------------------------------
-//	functions
-//--------------------------------------------------------------------
-//
+/*
+===============================================================================================
+	関数のプロトタイプ宣言
+===============================================================================================
+*/
+/*	初期化	*/
 void InitKFKF(void);
 // Receive kfkf model data.
 U8 ReceiveBT(void);
@@ -105,7 +107,5 @@ void setNextState(void);
 //
 S8 BluetoothStart(void);
 
-//
-void Bluetohht_dbg(void);
 
 #endif

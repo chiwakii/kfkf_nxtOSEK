@@ -19,9 +19,9 @@
 /* Bluetooth用バッファのサイズ */
 #define BT_RCV_BUF_SIZE 32
 /* event一時保管用配列のサイズ */
-#define RESERVED_EVENT_SIZE 3000
+//#define RESERVED_EVENT_SIZE 3000
 /* state一時保管用配列のサイズ */
-#define RESERVED_STATES_SIZE 900
+//#define RESERVED_STATES_SIZE 900
 
 /* ETロボコンkfkf管理用構造体 */
 typedef struct tag_StateMachine {
@@ -39,8 +39,9 @@ typedef struct tag_StateMachine {
 ===============================================================================================
 */
 /* Bluetooth用バッファ */
-//S16 bt_receive_buf[BT_RCV_BUF_SIZE];
-U8 bt_receive_buf[BT_RCV_BUF_SIZE];
+S16 bt_receive_buf[BT_RCV_BUF_SIZE];
+//U8 bt_receive_buf[BT_RCV_BUF_SIZE];
+
 /* ETロボコンkfkf管理用変数 */
 StateMachine_t g_StateMachine;
 
@@ -81,9 +82,6 @@ U8 ReceiveBT(void){
     U8 comm_end = 0;
 
     ecrobot_read_bt_packet(bt_receive_buf, BT_RCV_BUF_SIZE);
-
-    //DEBUG
-    ecrobot_bt_data_logger( (S8)bt_receive_buf[1], -44 );
 
 /*======================================================================================*/
 /*  最後の受信パケットを受信したら														*/
@@ -370,39 +368,4 @@ void InitKFKF(void)
 	}
 }
 
-
-void Bluetohht_dbg(void)
-{
-	/*
-	g_StateMachine.num_of_states = 8;
-	g_StateMachine.max_of_events = 16;
-
-
-    g_StateMachine.events = (S16 *)calloc( g_Eptr, sizeof(S16) );
-    if( g_StateMachine.events == NULL )
-    {
-        display_clear(0);
-        display_goto_xy(0, 1);
-        display_string("Pre:Bluetooth");
-        display_goto_xy(0, 2);
-        display_string("Malloc Err:event");
-        display_update();
-        ecrobot_sound_tone(880, 50, 30);
-    }
-    else
-    {
-    	for(i=0;i<g_Eptr;i++)
-    	{
-    		g_StateMachine.events[i] = (S16)events[i];
-    	}
-
-    	comm_end++;
-    }
-
-	g_StateMachine.event_flag = (U8 *)calloc( g_StateMachine.max_of_events, sizeof(U8) );
-
-	g_StateMachine.current_state = 0;
-	g_PacketCnt = 0;
-*/
-}
 

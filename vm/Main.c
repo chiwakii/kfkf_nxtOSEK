@@ -198,11 +198,6 @@ TASK(TaskMain)
 				g_MTState = TARGETCALIB;
 			}
 
-			if( ecrobot_is_ENTER_button_pressed() == 1 )
-			{
-				Bluetohht_dbg();
-			}
-
 			break;
 
 		/*----------------------------------------------*/
@@ -488,9 +483,6 @@ TASK(TaskSensor)
 TASK(TaskActuator)
 {
 
-	//DEBUG
-	//ecrobot_bt_data_logger( (S8)g_Actuator.turn, (S8)g_Actuator.forward );
-
 	/*--------------------------*/
 	/*	PWMの初期化				*/
 	/*--------------------------*/
@@ -734,7 +726,7 @@ TASK(TaskLogger)
 			break;
 
 		case LOG_TURN:
-			ecrobot_bt_data_logger( (S8)g_Actuator.turn, 0 );
+			ecrobot_bt_data_logger( (S8)g_Actuator.turn, (S8)g_Actuator.forward );
 			break;
 
 		case LOG_PWM:
