@@ -20,8 +20,8 @@ typedef struct tag_Actuator
 	/* 0:倒立なし / 1:バランスとって立つ / 2:しっぽで立つ */
 	U8 StandMode;
 	
-	S8 forward;		/* 前後進 */
-	S8 turn;		/* 旋回 */
+	F32 forward;			/* 前後進 */
+	F32 turn;				/* 旋回 */
 
 	U16 black;				/* 黒色検知用 */
 	U16 white;				/* 白色検知用 */

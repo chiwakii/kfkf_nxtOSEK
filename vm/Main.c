@@ -1008,7 +1008,7 @@ void ActionSet(void)
 		/* @param0: foward = value0 */
 		/* @param1: gyro_offset = gyro_offset_base + value1 */
 		case BALANCE_LINETRACE:
-			g_Actuator.forward = (S8)state.value0;
+			g_Actuator.forward = (F32)state.value0;
 			g_Actuator.gyro_offset = (U16)(g_Actuator.gyro_offset_base + state.value1);
 
 			g_Actuator.TraceMode = 1;
@@ -1028,8 +1028,8 @@ void ActionSet(void)
 		/* @param3: TP_gain = value3 / 100 */
 		case TAIL_RUN_FREEDOM:
 			g_Actuator.target_tail = (S8)state.value0;
-			g_Actuator.forward = (S8)state.value1;
-			g_Actuator.turn = (S8)state.value2;
+			g_Actuator.forward = (F32)state.value1;
+			g_Actuator.turn = (F32)state.value2;
 			g_Actuator.TP_gain = (F32)state.value3 / 100;
 
 			g_Actuator.TraceMode = 0;
@@ -1079,7 +1079,7 @@ void ActionSet(void)
 		//up the tail
 		case RAISE_TAIL:
 			g_Actuator.target_tail = 0;
-			//nxt_motor_set_speed(TAIL_MOTOR,-15,1);
+
 			break;
 
 		// tail run
@@ -1090,7 +1090,7 @@ void ActionSet(void)
 			g_Actuator.StandMode = 2;
 			g_Actuator.target_tail = (U8)state.value0;
 			//g_Actuator.tail_run_speed = state.value1;
-			g_Actuator.forward = (S8)state.value1;
+			g_Actuator.forward = (F32)state.value1;
 			g_Actuator.TP_gain = (F32)state.value2 / 100;
 			break;
 
@@ -1106,11 +1106,11 @@ void ActionSet(void)
 
 				if( state.value0 >= 0 )
 				{
-					g_Actuator.turn = abs( (S8)state.value1 );
+					g_Actuator.turn = (F32)state.value1;
 				}
 				else
 				{
-					g_Actuator.turn = -1 * abs( (S8)state.value1 );
+					g_Actuator.turn = -1 * (F32)state.value1;
 				}
 
 				g_Controller.start_pivot_turn_encoder_R = g_Sensor.count_right;
@@ -1139,8 +1139,8 @@ void ActionSet(void)
 			g_Actuator.TraceMode = 0;
 			g_Actuator.StandMode = 1;
 
-			g_Actuator.forward = (S8)state.value0;
-			g_Actuator.turn = (S8)state.value1;
+			g_Actuator.forward = (F32)state.value0;
+			g_Actuator.turn = (F32)state.value1;
 			g_Actuator.gyro_offset = (U16)(g_Actuator.gyro_offset_base + state.value2);
 
 
