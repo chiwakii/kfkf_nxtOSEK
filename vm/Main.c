@@ -996,9 +996,6 @@ void ActionSet(void)
 			g_Actuator.forward = 0;
 			g_Actuator.turn = 0;
 
-			g_Actuator.TraceMode = 1;
-			g_Actuator.StandMode = 1;
-
 			break;
 		/* Stop without the tail */
 		case BALANCE_STOP:
