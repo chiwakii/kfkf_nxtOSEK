@@ -633,7 +633,6 @@ void InitNXT()
 	/*	初期化:センサー								*/
 	/*----------------------------------------------*/
 	g_Sensor.light = 600;
-	//g_Sensor.pre_light = 600;
 	g_Sensor.gyro = 600;
 	g_Sensor.touch = 0;
 	g_Sensor.distance = 255;
